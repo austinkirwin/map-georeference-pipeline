@@ -1,19 +1,42 @@
-# Map / Time — historical map georeferencing pipeline
+# Historical Map Georeferencing Pipeline
 
-This repository starts a human-reviewed workflow for aligning historical maps with current GIS references and recording the evidence needed for historical zoning research.
+This project helps researchers align historical maps with modern geographic data, then preserve the evidence needed to research questions such as:
 
-The first version is a browser prototype, not an automated legal-determination system. It provides:
+> What zoning ordinance may have applied to this address on a particular historical date?
 
-- side-by-side placement of paired historic-pixel and modern-map control points;
-- fit points separate from independent check points;
-- a provisional affine transform with residuals, RMSE, and control-point coverage warnings;
-- a transparent historical-map overlay for visual review;
-- a versioned draft manifest that preserves map, control-point, transform, and source context;
-- a clearly fictional sample map so the interface can be exercised without making claims about a real place.
+It is designed as a research workflow. It does not make legal determinations automatically.
 
-## Start the prototype
+## What the pipeline does
 
-Prerequisites: Node.js 22 or newer and pnpm 11.
+1. Add a historical map scan and record where it came from.
+2. Identify durable landmarks on the old map, such as road intersections, bridges, rail crossings, or civic buildings.
+3. Match those landmarks to locations on a modern GIS map.
+4. Create a geographic transform from the matched control points.
+5. Check the quality of the transform using residuals, RMSE, and independent check points.
+6. Overlay the historical map on current map layers for visual review.
+7. Save the map source, control points, transform settings, error measurements, and reviewer notes in a reusable project record.
+8. Connect the reviewed map to historical jurisdiction boundaries, zoning maps, and ordinance sources in a later phase.
+
+## Current prototype
+
+The first version in this repository is a browser-based demonstration of the georeferencing workflow. It includes:
+
+- side-by-side historical and modern-map views;
+- control-point placement on both maps;
+- separate fit points and independent check points;
+- a provisional affine transform with error measurements;
+- an opacity-controlled historical overlay;
+- a draft project-manifest export;
+- a fictional sample map and fictional zoning record for safe testing.
+
+The current OpenStreetMap layer is a modern reference layer only. It is not proof of a historical street, parcel, municipal boundary, or zoning district.
+
+## Run the project locally
+
+Requirements:
+
+- Node.js 22 or newer
+- pnpm 11
 
 ```powershell
 corepack enable
@@ -21,73 +44,62 @@ pnpm install
 pnpm dev
 ```
 
-Then open the local URL printed by Vite. Run the full local quality suite with:
+Open the local address printed by Vite. To run formatting, linting, TypeScript checks, tests, and a production build:
 
 ```powershell
 pnpm run check
 ```
 
-## How the demo works
+## How to use the demo
 
-1. In **Side-by-side edit**, click a durable landmark on the historical scan.
-2. Click the same feature on the current reference map.
-3. Use **fit** points to calculate the provisional transform; add **check** points to evaluate it without changing it.
-4. Inspect residuals, RMSE, and point distribution.
-5. Open **Overlay review**, adjust opacity, and validate visual alignment.
-6. Export a draft manifest that preserves the control-point and review context.
+1. Open **Side-by-side edit**.
+2. Click a recognizable feature on the historical map.
+3. Click the matching location on the modern map.
+4. Mark points as either:
+   - **Fit points**, which calculate the transform.
+   - **Check points**, which measure accuracy without affecting the transform.
+5. Review the quality panel and make sure control points are spread across the sheet.
+6. Open **Overlay review** and use the opacity control to inspect alignment.
+7. Export the draft manifest when the review record is ready.
 
-The bundled map and zoning finding are fictional. The visible OpenStreetMap layer is only a present-day reference. It does not prove historical streets, boundaries, parcels, or zoning.
+## Important limitations
 
-## Research guardrails
+Historical zoning research needs more than a map overlay. A supported finding should include:
 
-A historical zoning finding should only be published after a reviewer has confirmed:
+- the historical location or parcel;
+- the jurisdiction that applied on the requested date;
+- the ordinance version in effect at that time;
+- the adopted historical zoning map;
+- source citations with archive location, page or sheet, access date, and rights information;
+- documented spatial uncertainty and human review.
 
-- the historical location and the jurisdiction in effect on the requested date;
-- the controlling ordinance text and adopted zoning map;
-- the source repository, locator (sheet/page/section), access date, and rights;
-- the georeferencing inputs, CRS, transform method, residuals, and independent check points;
-- any uncertainty created by map scale, boundary change, or imperfect alignment.
+The application is a research aid, not legal advice, a survey, or an authoritative zoning determination.
 
-The interface is a research aid and must not be represented as legal advice, a survey, or an authoritative zoning determination.
-
-## Architecture
-
-```text
-historical scan + source metadata
-            │
-            ▼
-browser GCP editor ──► reviewed manifest ──► job queue / GDAL worker (future)
-            │                                      │
-            ▼                                      ▼
-modern reference layers                       COG / tiles + QA record
-OSM, municipal GIS, Census                          │
-                                                     ▼
-                                              PostGIS + temporal evidence
-```
-
-The browser supplies the review workflow. A later production pipeline should run repeatable transformations using GDAL, store raw scans and derived COGs in object storage, and keep temporal boundaries/zoning evidence in a spatial database.
-
-Read [the architecture guide](docs/architecture.md), [data policy](docs/data-policy.md), and [research scope](docs/research-scope.md) before adding real material.
-
-## Repository layout
+## Future production pipeline
 
 ```text
-src/
-  components/          browser editor, current-map pane, QA panels
-  data/                clearly fictional demo fixture
-  domain/              durable project/evidence types
-  lib/                 affine fitting and error calculations
-public/samples/        small, license-cleared demo assets only
-docs/                  technical and evidence-management guidance
-.github/workflows/     deterministic quality checks
+Historical scan and source metadata
+        ->
+Human-reviewed control points
+        ->
+Reproducible GDAL processing
+        ->
+Cloud Optimized GeoTIFF and map tiles
+        ->
+PostGIS temporal boundaries, zoning evidence, and citations
+        ->
+Reviewed historical zoning research finding
 ```
 
-## Roadmap
+Large scans, GeoTIFFs, map tiles, and bulk GIS downloads should live in object storage rather than ordinary Git history. Git should keep the code, manifests, citations, tests, and processing configuration.
 
-1. Import/export validated project manifests and user-provided historical scans.
-2. Add deep zoom (OpenSeadragon) and authentic municipal WMS/WMTS/ArcGIS feature-service connectors.
-3. Send reviewed manifests to a GDAL worker for reproducible GeoTIFF/COG output.
-4. Add PostGIS tables for temporal jurisdictions, ordinance maps, zoning polygons, and citations.
-5. Add reviewer roles, audit history, source-aware OCR/AI assistance, and a human approval gate.
+## Project structure
 
-Large raster scans, COGs, tiles, bulk GIS data, and ordinance PDFs do **not** belong in ordinary Git history. See [data policy](docs/data-policy.md).
+```text
+src/                  Web application and georeferencing calculations
+public/samples/       Small fictional sample map and project fixture
+docs/                 Architecture, data policy, and research guidance
+.github/workflows/    Automated quality checks
+```
+
+For more detail, see the [architecture guide](docs/architecture.md), [data policy](docs/data-policy.md), and [historical zoning research scope](docs/research-scope.md).
