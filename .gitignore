@@ -1,0 +1,31 @@
+# Dependencies and generated application output
+node_modules/
+.pnpm-store/
+dist/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Large or reproducible geospatial data: keep metadata/manifests in Git instead.
+data/raw/
+data/derived/
+data/cache/
+data/tiles/
+*.tif
+*.tiff
+*.cog.tif
+*.mbtiles
+*.gpkg
+*.pmtiles

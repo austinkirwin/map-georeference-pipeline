@@ -1,0 +1,9 @@
+packages:
+  - "."
+
+# Avoid nested symlinks in Windows/OneDrive environments where they may be restricted.
+nodeLinker: hoisted
+
+# Explicitly allow only the Vite compiler's native-binary installation step.
+allowBuilds:
+  esbuild: true
