@@ -4,22 +4,38 @@ import { HistoricMapPane } from "./components/HistoricMapPane";
 import { ModernMapPane } from "./components/ModernMapPane";
 import { QaPanel } from "./components/QaPanel";
 import { ResearchFinding } from "./components/ResearchFinding";
-import { createDemoControlPoints, demoOverlayCorners, demoProject } from "./data/demoProject";
+import { demoOverlayCorners, demoProject } from "./data/demoProject";
 import type {
   ControlPointRole,
+  GeoreferenceProject,
   GroundControlPoint,
   HistoricPixel,
   MapCoordinate
 } from "./domain/types";
 import { analyzeGeoreference } from "./lib/georeference";
+import {
+  getIssueContext,
+  mapManifestUrl,
+  parseMapIntake,
+  projectFromMapIntake
+} from "./lib/mapIntake";
 
 type WorkspaceMode = "edit" | "review";
-
-const storageKey = "map-georeference-pipeline.control-points.v1";
+type OverlayCorners = typeof demoOverlayCorners | undefined;
 
 export default function App() {
+  const issueContext = useMemo(() => getIssueContext(window.location.search), []);
   const [mode, setMode] = useState<WorkspaceMode>("edit");
-  const [controlPoints, setControlPoints] = useState<GroundControlPoint[]>(readStoredControlPoints);
+  const [activeProject, setActiveProject] = useState<GeoreferenceProject>(demoProject);
+  const [activeOverlayCorners, setActiveOverlayCorners] =
+    useState<OverlayCorners>(demoOverlayCorners);
+  const [mapLoadState, setMapLoadState] = useState<"demo" | "loading" | "ready" | "error">(
+    issueContext.mapId ? "loading" : "demo"
+  );
+  const [controlPoints, setControlPoints] = useState<GroundControlPoint[]>(() =>
+    readStoredControlPoints(demoProject)
+  );
+  const [hydratedProjectId, setHydratedProjectId] = useState(demoProject.id);
   const [pendingHistoricPoint, setPendingHistoricPoint] = useState<HistoricPixel>();
   const [nextPointRole, setNextPointRole] = useState<ControlPointRole>("fit");
   const [overlayOpacity, setOverlayOpacity] = useState(0.58);
@@ -27,19 +43,75 @@ export default function App() {
     "Choose a durable landmark on the historical scan to begin a paired control point."
   );
 
+  useEffect(() => {
+    if (!issueContext.mapId) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    const mapId = issueContext.mapId;
+    setMapLoadState("loading");
+    fetch(mapManifestUrl(mapId))
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Map intake manifest could not be loaded.");
+        }
+        return response.json();
+      })
+      .then((document) => {
+        if (cancelled) {
+          return;
+        }
+        const project = projectFromMapIntake(parseMapIntake(document));
+        setActiveProject(project);
+        setActiveOverlayCorners(undefined);
+        setMapLoadState("ready");
+        setNotice(
+          "Loaded map " +
+            project.id +
+            ". Pair landmarks, then copy the issue-ready record into the linked GitHub Issue."
+        );
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+        setMapLoadState("error");
+        setNotice(
+          "The requested map intake record could not be loaded. Check that maps/inbox/" +
+            mapId +
+            "/map.json exists on the published branch."
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [issueContext.mapId]);
+
+  useEffect(() => {
+    setControlPoints(readStoredControlPoints(activeProject));
+    setHydratedProjectId(activeProject.id);
+    setPendingHistoricPoint(undefined);
+    setMode("edit");
+  }, [activeProject]);
+
   const analysis = useMemo(
     () =>
       analyzeGeoreference(
         controlPoints,
-        demoProject.historicMap.widthPx,
-        demoProject.historicMap.heightPx
+        activeProject.historicMap.widthPx,
+        activeProject.historicMap.heightPx
       ),
-    [controlPoints]
+    [activeProject.historicMap.heightPx, activeProject.historicMap.widthPx, controlPoints]
   );
+  const canReviewOverlay = analysis.transform !== undefined && activeOverlayCorners !== undefined;
 
   useEffect(() => {
-    window.localStorage.setItem(storageKey, JSON.stringify(controlPoints));
-  }, [controlPoints]);
+    if (hydratedProjectId === activeProject.id) {
+      window.localStorage.setItem(storageKeyFor(activeProject.id), JSON.stringify(controlPoints));
+    }
+  }, [activeProject.id, controlPoints, hydratedProjectId]);
 
   function handleHistoricPick(point: HistoricPixel) {
     setMode("edit");
@@ -88,19 +160,19 @@ export default function App() {
     );
   }
 
-  function resetDemo() {
-    window.localStorage.removeItem(storageKey);
-    setControlPoints(createDemoControlPoints());
+  function resetCurrentProject() {
+    window.localStorage.removeItem(storageKeyFor(activeProject.id));
+    setControlPoints(cloneControlPoints(activeProject.controlPoints));
     setPendingHistoricPoint(undefined);
-    setNotice("The fictional demonstration control points were restored.");
+    setNotice("The saved control points for this map were cleared.");
   }
 
   function exportManifest() {
     const manifest = {
-      schemaVersion: demoProject.schemaVersion,
+      schemaVersion: activeProject.schemaVersion,
       exportedAt: new Date().toISOString(),
       project: {
-        ...demoProject,
+        ...activeProject,
         controlPoints
       },
       provisionalAnalysis: analysis
@@ -111,7 +183,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "riverton-1930-georeference-manifest.json";
+    link.download = activeProject.id + "-georeference-manifest.json";
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -119,6 +191,34 @@ export default function App() {
     setNotice(
       "A local project manifest was exported. It is a draft research record, not a published warp."
     );
+  }
+
+  async function copyIssueRecord() {
+    const record = formatIssueLandmarkRecord(
+      activeProject,
+      controlPoints,
+      analysis,
+      issueContext.issueNumber
+    );
+    try {
+      await navigator.clipboard.writeText(record);
+      setNotice(
+        "Landmark record copied. Paste it as a comment in the linked GitHub Issue for review."
+      );
+    } catch {
+      const blob = new Blob([record], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = activeProject.id + "-landmarks-for-issue.md";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setNotice(
+        "Clipboard access was unavailable, so an issue-ready landmark record was downloaded instead."
+      );
+    }
   }
 
   const workspaceSidebar = (
@@ -164,7 +264,7 @@ export default function App() {
           </div>
         </div>
         <ul className="layer-list">
-          {demoProject.referenceLayers.map((layer) => (
+          {activeProject.referenceLayers.map((layer) => (
             <li key={layer.id}>
               <span className={"layer-dot " + layer.status} />
               <span>
@@ -200,7 +300,7 @@ export default function App() {
           </button>
           <button
             className={mode === "review" ? "mode-button active" : "mode-button"}
-            disabled={!analysis.transform}
+            disabled={!canReviewOverlay}
             onClick={() => setMode("review")}
             type="button"
           >
@@ -213,19 +313,49 @@ export default function App() {
         {notice}
       </p>
 
+      {issueContext.mapId ? (
+        <section className="issue-context panel" aria-label="GitHub Issue workspace">
+          <div>
+            <p className="eyebrow">GitHub Issue workspace</p>
+            <h2>
+              {mapLoadState === "loading"
+                ? "Loading map intake record"
+                : "Map review: " + activeProject.id}
+            </h2>
+            <p>
+              Map ID: <code>{issueContext.mapId}</code>
+              {issueContext.issueNumber ? " · Issue #" + issueContext.issueNumber : ""}
+            </p>
+            <p className="panel-note">
+              Pick landmarks here, then copy the record into the GitHub Issue. The Pages picker
+              never stores a GitHub token or posts on your behalf. Uploaded maps use side-by-side
+              review first; an overlay requires a reviewed server-side warp.
+            </p>
+          </div>
+          <button
+            className="primary-button"
+            disabled={mapLoadState !== "ready" || controlPoints.length === 0}
+            onClick={copyIssueRecord}
+            type="button"
+          >
+            Copy landmark record for Issue
+          </button>
+        </section>
+      ) : null}
+
       {mode === "edit" ? (
         <section className="workbench" aria-label="Side-by-side georeferencing editor">
           <HistoricMapPane
             controlPoints={controlPoints}
-            map={demoProject.historicMap}
+            map={activeProject.historicMap}
             onPick={handleHistoricPick}
             pendingPoint={pendingHistoricPoint}
           />
           <ModernMapPane
             controlPoints={controlPoints}
-            historicImageUrl={demoProject.historicMap.rawImageUrl}
+            historicImageUrl={activeProject.historicMap.rawImageUrl}
             onPick={handleModernPick}
-            overlayCorners={demoOverlayCorners}
+            overlayCorners={activeOverlayCorners ?? demoOverlayCorners}
             overlayOpacity={overlayOpacity}
             showOverlay={false}
           />
@@ -235,11 +365,11 @@ export default function App() {
         <section className="review-workbench" aria-label="Overlay review">
           <ModernMapPane
             controlPoints={controlPoints}
-            historicImageUrl={demoProject.historicMap.rawImageUrl}
+            historicImageUrl={activeProject.historicMap.rawImageUrl}
             onPick={handleModernPick}
-            overlayCorners={demoOverlayCorners}
+            overlayCorners={activeOverlayCorners ?? demoOverlayCorners}
             overlayOpacity={overlayOpacity}
-            showOverlay
+            showOverlay={activeOverlayCorners !== undefined}
           />
           <aside className="review-sidebar">
             <section className="panel overlay-panel">
@@ -276,8 +406,8 @@ export default function App() {
         />
         <QaPanel analysis={analysis} />
         <ResearchFinding
-          evidence={demoProject.zoningEvidence}
-          finding={demoProject.sampleFinding}
+          evidence={activeProject.zoningEvidence}
+          finding={activeProject.sampleFinding}
         />
       </section>
 
@@ -287,9 +417,14 @@ export default function App() {
           map, temporal jurisdiction boundary, source citations, and human review.
         </p>
         <div>
-          <button className="text-button" onClick={resetDemo} type="button">
-            Restore demo
+          <button className="text-button" onClick={resetCurrentProject} type="button">
+            Clear saved points
           </button>
+          {issueContext.mapId ? (
+            <button className="text-button" onClick={copyIssueRecord} type="button">
+              Copy landmark record
+            </button>
+          ) : null}
           <button className="primary-button" onClick={exportManifest} type="button">
             Export draft manifest
           </button>
@@ -299,15 +434,86 @@ export default function App() {
   );
 }
 
-function readStoredControlPoints(): GroundControlPoint[] {
+function storageKeyFor(projectId: string): string {
+  return "map-georeference-pipeline.control-points.v1." + projectId;
+}
+
+function readStoredControlPoints(project: GeoreferenceProject): GroundControlPoint[] {
   try {
-    const stored = window.localStorage.getItem(storageKey);
+    const stored = window.localStorage.getItem(storageKeyFor(project.id));
     if (!stored) {
-      return createDemoControlPoints();
+      return cloneControlPoints(project.controlPoints);
     }
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? (parsed as GroundControlPoint[]) : createDemoControlPoints();
+    return Array.isArray(parsed)
+      ? (parsed as GroundControlPoint[])
+      : cloneControlPoints(project.controlPoints);
   } catch {
-    return createDemoControlPoints();
+    return cloneControlPoints(project.controlPoints);
   }
+}
+
+function cloneControlPoints(controlPoints: GroundControlPoint[]): GroundControlPoint[] {
+  return controlPoints.map((controlPoint) => ({
+    ...controlPoint,
+    historicPixel: { ...controlPoint.historicPixel },
+    modernLocation: { ...controlPoint.modernLocation }
+  }));
+}
+
+function formatIssueLandmarkRecord(
+  project: GeoreferenceProject,
+  controlPoints: GroundControlPoint[],
+  analysis: ReturnType<typeof analyzeGeoreference>,
+  issueNumber?: number
+): string {
+  const marker =
+    "<!-- georef-control-points:map=" +
+    project.id +
+    (issueNumber ? ";issue=" + issueNumber : "") +
+    " -->";
+  const rows = controlPoints
+    .filter((point) => point.enabled)
+    .map((point) => {
+      const residual = analysis.residualMetersByPointId[point.id];
+      return [
+        escapeTableValue(point.label),
+        point.role,
+        point.historicPixel.x,
+        point.historicPixel.y,
+        point.modernLocation.longitude.toFixed(7),
+        point.modernLocation.latitude.toFixed(7),
+        residual === undefined ? "not calculated" : residual.toFixed(2) + " m",
+        point.confidence
+      ].join(" | ");
+    });
+
+  return [
+    marker,
+    "## Landmark record: " + project.title,
+    "",
+    "Map ID: " + project.id,
+    issueNumber ? "Issue: #" + issueNumber : "Issue: add this record to the relevant map Issue",
+    "Transform: " + (analysis.transform ? "affine" : "not fitted"),
+    "Fit RMSE: " + formatMetric(analysis.fitRmseMeters),
+    "Check RMSE: " + formatMetric(analysis.checkRmseMeters),
+    "Sheet coverage: " + Math.round(analysis.coverageRatio * 100) + "%",
+    "",
+    "| Landmark | Role | Pixel X | Pixel Y | Longitude | Latitude | Residual | Confidence |",
+    "| --- | --- | ---: | ---: | ---: | ---: | --- | --- |",
+    ...(rows.length > 0
+      ? rows.map((row) => "| " + row + " |")
+      : ["| No enabled points | — | — | — | — | — | — | — |"]),
+    "",
+    "Reviewer note: verify each landmark and its source before approving a transform.",
+    "This record is a research aid and not a legal zoning determination."
+  ].join("\n");
+}
+
+function escapeTableValue(value: string): string {
+  return value.replaceAll("|", "\\|").replaceAll("\n", " ");
+}
+
+function formatMetric(value: number | undefined): string {
+  return value === undefined ? "not calculated" : value.toFixed(2) + " m";
 }

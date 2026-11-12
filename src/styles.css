@@ -134,6 +134,34 @@ h2 {
   font-size: 0.9rem;
 }
 
+.issue-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  border-left: 3px solid #0d6e68;
+}
+
+.issue-context h2 {
+  margin-top: 0.2rem;
+}
+
+.issue-context p:not(.eyebrow):not(.panel-note) {
+  margin: 0.45rem 0 0;
+  color: #4f6763;
+  font-size: 0.86rem;
+}
+
+.issue-context code {
+  padding: 0.1rem 0.28rem;
+  border-radius: 0.2rem;
+  background: #eef3ef;
+  color: #2d5651;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.82em;
+}
+
 .workbench {
   display: grid;
   grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr) minmax(18rem, 0.5fr);
@@ -635,6 +663,11 @@ td small {
 
   .app-header,
   .app-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .issue-context {
     align-items: flex-start;
     flex-direction: column;
   }

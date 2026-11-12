@@ -15,6 +15,10 @@ const fictionalSource: SourceCitation = {
   rights: "CC0-style project fixture"
 };
 
+function publicAssetUrl(path: string): string {
+  return import.meta.env.BASE_URL + path;
+}
+
 function modernCoordinateFor(pixel: HistoricPixel): MapCoordinate {
   /*
    * This deliberately simple relationship lets the fictional fixture produce
@@ -62,7 +66,7 @@ export const demoProject: GeoreferenceProject = {
     placeName: "Riverton, Illinois (fictional)",
     mapDate: "1930-06-01",
     sheet: "1 of 1",
-    rawImageUrl: "/samples/riverton-1930.svg",
+    rawImageUrl: publicAssetUrl("samples/riverton-1930.svg"),
     widthPx: 4000,
     heightPx: 3000,
     source: fictionalSource,

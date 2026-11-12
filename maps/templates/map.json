@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "0.1",
+  "id": "replace-with-map-id",
+  "title": "Replace with map title",
+  "placeName": "City, state or region",
+  "mapDate": "1930-01-01",
+  "reviewImage": "review-copy.jpg",
+  "widthPx": 4000,
+  "heightPx": 3000,
+  "targetCrs": "EPSG:3857",
+  "source": {
+    "title": "Archive or collection title",
+    "repository": "Archive name",
+    "url": "https://example.org/source-record",
+    "locator": "Sheet, page, or call number",
+    "accessedAt": "2026-11-12",
+    "rights": "Describe rights or access terms"
+  },
+  "storage": {
+    "originalUrl": "https://example.org/original-scan",
+    "sha256": "Optional checksum of the original scan"
+  }
+}

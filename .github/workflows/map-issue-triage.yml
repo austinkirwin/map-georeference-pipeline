@@ -1,0 +1,44 @@
+name: Prepare manual map-intake Issues
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  prepare-intake:
+    if: startsWith(github.event.issue.title, '[Map intake]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issueNumber = context.payload.issue.number;
+            const labels = [
+              { name: "map:intake", color: "0E8A16", description: "A map awaiting georeferencing intake." },
+              { name: "georeference:needs-landmarks", color: "FBCA04", description: "Landmark selection is needed." }
+            ];
+            for (const label of labels) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name: label.name });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                await github.rest.issues.createLabel({ owner, repo, ...label });
+              }
+            }
+            await github.rest.issues.addLabels({
+              owner, repo, issue_number: issueNumber, labels: labels.map((label) => label.name)
+            });
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: issueNumber,
+              body:
+                "Thank you. This Issue is the map review record. " +
+                "Add a repository intake folder under maps/inbox/<map-id>/ when possible, " +
+                "then open the linked Pages picker to create and paste a landmark record. " +
+                "Do not upload restricted or large archival scans directly to the Issue."
+            });

@@ -1,8 +1,16 @@
 # Architecture
 
-## Baseline in this repository
+## GitHub-centered baseline
 
-The baseline is intentionally client-only. It demonstrates the critical human interaction before committing to a backend:
+GitHub is the intake and review control plane:
+
+1. A map record enters under maps/inbox.
+2. A GitHub Action creates a map-specific Issue.
+3. The Issue links to the static Pages picker and preserves review discussion.
+4. A reviewer pastes a structured landmark record into the Issue.
+5. A reviewed manifest becomes the input to future geoprocessing.
+
+The browser picker remains intentionally static. It demonstrates the critical human interaction without embedding GitHub credentials in client code:
 
 1. View an unwarped historical scan in pixel space.
 2. View a present-day geographic reference map beside it.
@@ -10,19 +18,25 @@ The baseline is intentionally client-only. It demonstrates the critical human in
 4. Fit an affine transform from **fit** GCPs only.
 5. Measure residuals for fit and independent **check** GCPs.
 6. Review a provisional overlay.
-7. Export a draft project manifest.
+7. Export a draft project manifest or copy an Issue-ready landmark record.
 
 The demo uses a fictional scan and fictional evidence. It is an interface and data-model starting point, not a map-processing service.
 
 ## Component boundaries
 
 ```text
-React UI
+GitHub control plane
+ ├── maps/inbox          versioned map intake metadata and small review copies
+ ├── Issue Form          manual intake for externally hosted maps
+ ├── map-intake Action   one Issue per map.json file
+ └── GitHub Issue        provenance, review checklist, and landmark record
+
+React Pages picker
  ├── HistoricMapPane       unwarped raster and pixel-space GCPs
  ├── ModernMapPane         MapLibre map, reference layers, geographic GCPs
  ├── georeference.ts       deterministic affine fit and residual calculations
  ├── QA panels             coverage, RMSE, warnings, review state
- └── exported manifest     portable draft record
+ └── exported record       portable manifest or Issue-ready landmark table
 
 Future service boundary
  ├── API                   validation, authorization, manifest persistence

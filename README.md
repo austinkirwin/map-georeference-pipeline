@@ -1,66 +1,95 @@
 # Historical Map Georeferencing Pipeline
 
-This project helps researchers align historical maps with modern geographic data, then preserve the evidence needed to research questions such as:
+This project uses GitHub as the intake, review, and audit trail for historical-map georeferencing.
 
-> What zoning ordinance may have applied to this address on a particular historical date?
+Each map becomes a GitHub Issue. The Issue holds the map's source information, landmark-review discussion, quality checks, and links to the resulting reviewed record. A companion GitHub Pages picker provides the click-on-map interaction that GitHub Issues cannot provide by themselves.
 
-It is designed as a research workflow. It does not make legal determinations automatically.
+The project is a research workflow. It does not make legal determinations automatically.
 
-## What the pipeline does
+## GitHub workflow
 
-1. Add a historical map scan and record where it came from.
-2. Identify durable landmarks on the old map, such as road intersections, bridges, rail crossings, or civic buildings.
-3. Match those landmarks to locations on a modern GIS map.
-4. Create a geographic transform from the matched control points.
-5. Check the quality of the transform using residuals, RMSE, and independent check points.
-6. Overlay the historical map on current map layers for visual review.
-7. Save the map source, control points, transform settings, error measurements, and reviewer notes in a reusable project record.
-8. Connect the reviewed map to historical jurisdiction boundaries, zoning maps, and ordinance sources in a later phase.
+1. Add a small review copy of a historical map and its map.json intake record under maps/inbox/<map-id>/.
+2. Merge the intake to the default branch.
+3. The map-intake GitHub Action creates one Issue for that map.
+4. Open the Pages landmark picker linked from the Issue.
+5. Click matching landmarks on the historical map and modern reference map.
+6. Copy the issue-ready landmark record from the picker and paste it into the Issue.
+7. Review source information, control-point distribution, residuals, independent check points, and overlay alignment.
+8. Save the reviewed record under maps/manifests/ and use it as input to later GDAL, COG, and spatial-database processing.
 
-## Current prototype
-
-The first version in this repository is a browser-based demonstration of the georeferencing workflow. It includes:
-
-- side-by-side historical and modern-map views;
-- control-point placement on both maps;
-- separate fit points and independent check points;
-- a provisional affine transform with error measurements;
-- an opacity-controlled historical overlay;
-- a draft project-manifest export;
-- a fictional sample map and fictional zoning record for safe testing.
-
-The current OpenStreetMap layer is a modern reference layer only. It is not proof of a historical street, parcel, municipal boundary, or zoning district.
-
-## Run the project locally
-
-Requirements:
-
-- Node.js 22 or newer
-- pnpm 11
-
-```powershell
-corepack enable
-pnpm install
-pnpm dev
+```text
+Map folder added to GitHub
+        ->
+GitHub Action creates a map Issue
+        ->
+GitHub Pages landmark picker
+        ->
+Reviewer pastes landmark record into Issue
+        ->
+Reviewed manifest and reproducible processing
 ```
 
-Open the local address printed by Vite. To run formatting, linting, TypeScript checks, tests, and a production build:
+## Why the picker is linked from an Issue
 
-```powershell
-pnpm run check
+GitHub Issues are well suited to discussion, assignments, checklists, citations, and permanent review history. They cannot safely run a custom click-on-image application.
+
+The Pages picker is therefore linked from each Issue. It reads the map's public review copy, helps a user choose landmarks, and copies a structured Markdown record for the user to paste into the Issue.
+
+The Pages app does not contain a GitHub token and does not post comments automatically. Writing to GitHub from a browser would require a separately approved GitHub App or OAuth-backed service. That is intentionally outside this initial version.
+
+## Add a map
+
+Create a folder like this:
+
+```text
+maps/inbox/champaign-zoning-1930-sheet-01/
+  map.json
+  review-copy.jpg
 ```
 
-## How to use the demo
+Use the template at maps/templates/map.json. The intake record includes:
 
-1. Open **Side-by-side edit**.
-2. Click a recognizable feature on the historical map.
-3. Click the matching location on the modern map.
-4. Mark points as either:
-   - **Fit points**, which calculate the transform.
-   - **Check points**, which measure accuracy without affecting the transform.
-5. Review the quality panel and make sure control points are spread across the sheet.
-6. Open **Overlay review** and use the opacity control to inspect alignment.
-7. Export the draft manifest when the review record is ready.
+- a stable map identifier;
+- title, place, and date;
+- pixel dimensions for the review image;
+- source repository, URL, locator, access date, and rights;
+- optional durable storage URL and source checksum.
+
+Commit the map.json file and review image to the default branch. The map-intake workflow creates the Issue and labels it for landmark selection.
+
+For a map that cannot be committed to the repository, use the GitHub Issue form called Map intake. Include a durable external URL or a small rights-cleared review copy.
+
+## Repository map folders
+
+```text
+maps/inbox/       Incoming map records and small review images
+maps/manifests/   Reviewed control-point and transform records
+maps/processed/   Documentation for generated outputs; large artifacts stay outside Git
+maps/templates/   Copyable map.json template
+```
+
+Do not commit archival scans, TIFFs, COGs, tiles, MBTiles, GeoPackages, or restricted maps to ordinary Git history. Store them in approved object storage or carefully configured Git LFS, then record the URL and checksum in the map record.
+
+## GitHub setup required once
+
+After this branch is merged to the repository's default branch:
+
+1. In repository Settings, Actions, General, allow workflows to receive the permissions they request. The map-intake workflow needs Issues: write so it can create Issues and labels.
+2. In repository Settings, Pages, choose GitHub Actions as the publishing source.
+3. Run the Deploy landmark picker workflow once or push a change to the default branch.
+
+GitHub Pages visibility must match the sensitivity of your maps. Do not enable a public Pages site for private, restricted, or rights-limited map copies. If private Pages is not available on your GitHub plan, use an authenticated application or external hosting for the picker instead.
+
+## Current capabilities
+
+- Map intake folders and metadata template
+- Automatic Issue creation for map records added to the default branch
+- Manual Map intake Issue form for externally hosted maps
+- GitHub Pages deployment workflow for the landmark picker
+- Side-by-side historic and modern-map control-point selection
+- Separate fit and independent check points
+- Affine-fit residuals, RMSE, coverage warnings, and overlay review for the sample map
+- Issue-ready landmark-record export
 
 ## Important limitations
 
@@ -75,31 +104,15 @@ Historical zoning research needs more than a map overlay. A supported finding sh
 
 The application is a research aid, not legal advice, a survey, or an authoritative zoning determination.
 
-## Future production pipeline
+## Developer commands
 
-```text
-Historical scan and source metadata
-        ->
-Human-reviewed control points
-        ->
-Reproducible GDAL processing
-        ->
-Cloud Optimized GeoTIFF and map tiles
-        ->
-PostGIS temporal boundaries, zoning evidence, and citations
-        ->
-Reviewed historical zoning research finding
+Node.js 22 or newer and pnpm 11 are required for local development.
+
+```powershell
+corepack enable
+pnpm install
+pnpm dev
+pnpm run check
 ```
 
-Large scans, GeoTIFFs, map tiles, and bulk GIS downloads should live in object storage rather than ordinary Git history. Git should keep the code, manifests, citations, tests, and processing configuration.
-
-## Project structure
-
-```text
-src/                  Web application and georeferencing calculations
-public/samples/       Small fictional sample map and project fixture
-docs/                 Architecture, data policy, and research guidance
-.github/workflows/    Automated quality checks
-```
-
-For more detail, see the [architecture guide](docs/architecture.md), [data policy](docs/data-policy.md), and [historical zoning research scope](docs/research-scope.md).
+For architecture, retention, and research guidance, see docs/architecture.md, docs/data-policy.md, docs/github-issue-workflow.md, and docs/research-scope.md.

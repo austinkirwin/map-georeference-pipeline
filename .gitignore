@@ -29,3 +29,7 @@ data/tiles/
 *.mbtiles
 *.gpkg
 *.pmtiles
+
+# Generated map-processing output belongs in object storage or an artifact system.
+maps/processed/*
+!maps/processed/README.md

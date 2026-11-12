@@ -1,0 +1,124 @@
+name: Create map-intake Issues
+
+on:
+  push:
+    paths:
+      - "maps/inbox/**/map.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  create-intake-issues:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create one Issue for each new map manifest
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const labels = [
+              { name: "map:intake", color: "0E8A16", description: "A map awaiting georeferencing intake." },
+              { name: "georeference:needs-landmarks", color: "FBCA04", description: "Landmark selection is needed." }
+            ];
+
+            async function ensureLabel(label) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name: label.name });
+              } catch (error) {
+                if (error.status !== 404) throw error;
+                await github.rest.issues.createLabel({ owner, repo, ...label });
+              }
+            }
+
+            for (const label of labels) await ensureLabel(label);
+
+            let changedFiles = [];
+            const before = context.payload.before;
+            if (before && !/^0+$/.test(before)) {
+              const comparison = await github.rest.repos.compareCommits({
+                owner, repo, base: before, head: context.sha, per_page: 100
+              });
+              changedFiles = comparison.data.files || [];
+            } else {
+              const commit = await github.rest.repos.getCommit({
+                owner, repo, ref: context.sha
+              });
+              changedFiles = commit.data.files || [];
+            }
+
+            const pattern = /^maps\/inbox\/([a-z0-9][a-z0-9-]*)\/map\.json$/;
+            const mapIds = new Set(
+              changedFiles
+                .filter((file) => file.status !== "removed")
+                .map((file) => pattern.exec(file.filename))
+                .filter(Boolean)
+                .map((match) => match[1])
+            );
+
+            if (mapIds.size === 0) {
+              core.notice("No map.json intake files were added or updated.");
+              return;
+            }
+
+            const existingIssues = await github.paginate(github.rest.issues.listForRepo, {
+              owner, repo, state: "all", per_page: 100
+            });
+
+            for (const mapId of mapIds) {
+              const manifestPath = "maps/inbox/" + mapId + "/map.json";
+              const marker = "<!-- map-intake:" + manifestPath + " -->";
+              const exists = existingIssues.some(
+                (issue) => !issue.pull_request && (issue.body || "").includes(marker)
+              );
+              if (exists) {
+                core.info("An intake Issue already exists for " + manifestPath + ".");
+                continue;
+              }
+
+              const rootUrl = "https://github.com/" + owner + "/" + repo;
+              const manifestUrl = rootUrl + "/blob/" + context.sha + "/" + manifestPath;
+              const pickerUrl =
+                "https://" + owner + ".github.io/" + repo + "/?map=" + encodeURIComponent(mapId);
+              const body = [
+                marker,
+                "# Map intake: " + mapId,
+                "",
+                "This Issue is the review record for the map intake.",
+                "",
+                "## Files",
+                "- [Map intake manifest](" + manifestUrl + ")",
+                "",
+                "## Landmark selection",
+                "1. After the Pages deployment completes, open the [landmark picker](" + pickerUrl + ").",
+                "2. Pair durable historic and modern landmarks.",
+                "3. Copy the issue-ready landmark record from the picker and paste it in a comment below.",
+                "",
+                "## Review checklist",
+                "- [ ] Verify source, rights, and map date.",
+                "- [ ] Add fit points distributed across the sheet.",
+                "- [ ] Add independent check points.",
+                "- [ ] Review residuals and overlay alignment.",
+                "- [ ] Add or link the reviewed manifest under maps/manifests.",
+                "",
+                "The picker is a research tool. It does not make a legal zoning determination."
+              ].join("\n");
+
+              const issue = await github.rest.issues.create({
+                owner,
+                repo,
+                title: "Map intake: " + mapId,
+                body,
+                labels: labels.map((label) => label.name)
+              });
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: issue.data.number,
+                body: body.replace(pickerUrl, pickerUrl + "&issue=" + issue.data.number)
+              });
+              core.notice("Created Issue #" + issue.data.number + " for " + mapId + ".");
+            }
