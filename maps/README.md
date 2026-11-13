@@ -15,3 +15,8 @@ Each incoming map must use a stable lowercase map identifier, for example champa
 Add a map.json file under maps/inbox/<map-id>/. When that file lands on the default branch, the map-intake GitHub Action creates a review Issue for it.
 
 Keep repository copies small and reviewable. Put archival scans, TIFFs, COGs, tiles, and restricted material in approved object storage or Git LFS instead. Record their URLs, checksums, and rights in map.json.
+
+The repository's MIT license applies to original project code and documentation,
+not to historical map images, GIS data, or other third-party materials in this
+directory. Each intake record's source and rights metadata controls its use and
+redistribution.

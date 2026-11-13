@@ -6,8 +6,9 @@ workflow logs, and every review image committed under `maps/inbox/`.
 
 ## Required owner decisions
 
-- Choose and add a software/content license. Do not assume that a public
-  repository grants reuse rights.
+- The project code and documentation use the MIT License. Confirm that it still
+  matches your intended contributor terms, and do not treat it as a license for
+  maps or other third-party content.
 - Confirm that every map review image, source URL, citation, Issue attachment,
   and generated artifact may be publicly redistributed.
 - Choose a private security-reporting channel and enable GitHub private

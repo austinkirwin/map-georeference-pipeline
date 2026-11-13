@@ -57,7 +57,7 @@ Use the template at maps/templates/map.json. The intake record includes:
 
 Commit the map.json file and review image to the default branch. The map-intake workflow creates the Issue and labels it for landmark selection.
 
-For a map that cannot be committed to the repository, use the GitHub Issue form called Map intake. Include a durable external URL or a small rights-cleared review copy.
+For a map that cannot be committed to the repository, use the GitHub Issue form called Map intake. Include a durable public URL; add a rights-cleared review image only through a reviewed repository change.
 
 ## Repository map folders
 
@@ -106,6 +106,14 @@ Historical zoning research needs more than a map overlay. A supported finding sh
 
 The application is a research aid, not legal advice, a survey, or an authoritative zoning determination.
 
+## License and third-party materials
+
+The project's original source code and documentation are available under the
+[MIT License](LICENSE). The license does not grant any rights to historical map
+images, GIS data, source archives, or other third-party material. Use the
+source and rights fields in each map record to determine whether that material
+may be used or redistributed.
+
 ## Before making the repository public
 
 Public visibility exposes the complete Git history, Issues, Actions logs, and
@@ -128,4 +136,5 @@ pnpm run check
 For architecture, retention, research, public-release, and optional
 Codex-assistance guidance, see docs/architecture.md, docs/data-policy.md,
 docs/github-issue-workflow.md, docs/research-scope.md,
-docs/public-release-checklist.md, and docs/codex-issue-assist.md.
+docs/public-release-checklist.md, docs/public-repository-access.md, and
+docs/codex-issue-assist.md.
