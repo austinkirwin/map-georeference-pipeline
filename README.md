@@ -106,6 +106,14 @@ Historical zoning research needs more than a map overlay. A supported finding sh
 
 The application is a research aid, not legal advice, a survey, or an authoritative zoning determination.
 
+## Before making the repository public
+
+Public visibility exposes the complete Git history, Issues, Actions logs, and
+every review image in `maps/inbox/`. Run `pnpm run public:check` and follow
+`docs/public-release-checklist.md` before changing visibility. The Pages
+workflow also runs this check for public repositories, but it cannot make an
+already-committed map private again.
+
 ## Developer commands
 
 Node.js 22 or newer and pnpm 11 are required for local development.
@@ -117,4 +125,7 @@ pnpm dev
 pnpm run check
 ```
 
-For architecture, retention, research, and optional Codex-assistance guidance, see docs/architecture.md, docs/data-policy.md, docs/github-issue-workflow.md, docs/research-scope.md, and docs/codex-issue-assist.md.
+For architecture, retention, research, public-release, and optional
+Codex-assistance guidance, see docs/architecture.md, docs/data-policy.md,
+docs/github-issue-workflow.md, docs/research-scope.md,
+docs/public-release-checklist.md, and docs/codex-issue-assist.md.

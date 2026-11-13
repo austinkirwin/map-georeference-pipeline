@@ -1,6 +1,7 @@
 name: Map intake
 description: Register a historical map for georeferencing review.
 title: "[Map intake]: "
+labels: ["map:intake", "georeference:needs-landmarks"]
 body:
   - type: markdown
     attributes:
@@ -8,6 +9,8 @@ body:
         Use this form for externally hosted maps or when a repository intake folder has not yet been created.
 
         To create a map-backed Issue automatically, add maps/inbox/<map-id>/map.json and a small review image to the default branch.
+
+        Everything submitted here, including attachments, is public when the repository is public. Do not upload map files, restricted sources, credentials, or sensitive locations.
   - type: input
     id: map-id
     attributes:
@@ -38,11 +41,11 @@ body:
       description: Include the archive, stable source URL, sheet or page locator, access date, and known rights information.
     validations:
       required: true
-  - type: textarea
+  - type: input
     id: map-file
     attributes:
-      label: Review copy or storage location
-      description: Paste a durable URL or drag a small rights-cleared review image into this field. Do not attach restricted or large archival scans.
+      label: Public source or storage location
+      description: Paste a durable public URL. Do not upload map images to a public Issue; add a rights-cleared review image only through a reviewed repository change.
     validations:
       required: true
   - type: textarea
@@ -61,6 +64,8 @@ body:
       label: Intake acknowledgements
       options:
         - label: I have recorded the source and rights information to the best of my knowledge.
+          required: true
+        - label: I confirm that any submitted source URL or repository review copy may be publicly shared.
           required: true
         - label: I understand this Issue is a research record, not a legal zoning determination.
           required: true

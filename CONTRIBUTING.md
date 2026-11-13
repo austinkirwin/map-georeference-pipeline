@@ -2,7 +2,9 @@
 
 ## Work on a branch
 
-Use a focused branch such as \`codex/add-manifest-validation\` or \`feature/arcgis-layer-adapter\`. Keep generated scans, COGs, tiles, and credentials out of commits.
+Use a focused branch such as `codex/add-manifest-validation` or
+`feature/arcgis-layer-adapter`. Keep generated scans, COGs, tiles, and
+credentials out of commits.
 
 ## Before opening a pull request
 

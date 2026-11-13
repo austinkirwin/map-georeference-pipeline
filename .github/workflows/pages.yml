@@ -27,6 +27,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: pnpm/action-setup@v4
         with:
           version: 11.25.0
@@ -38,6 +40,9 @@ jobs:
       - run: pnpm run build
         env:
           GITHUB_PAGES_BASE: /${{ github.event.repository.name }}/
+      - name: Verify map assets before a public deployment
+        if: github.event.repository.private == false
+        run: pnpm run public:check
       - name: Copy small map review assets into the Pages artifact
         run: |
           mkdir -p dist/maps

@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   prepare-intake:
-    if: startsWith(github.event.issue.title, '[Map intake]')
+    if: contains(github.event.issue.labels.*.name, 'map:intake')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v7
