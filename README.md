@@ -77,6 +77,7 @@ After this branch is merged to the repository's default branch:
 1. In repository Settings, Actions, General, allow workflows to receive the permissions they request. The map-intake workflow needs Issues: write so it can create Issues and labels.
 2. In repository Settings, Pages, choose GitHub Actions as the publishing source.
 3. Run the Deploy landmark picker workflow once or push a change to the default branch.
+4. Optional: the manual Codex landmark-record reviewer needs an `OPENAI_API_KEY` Actions secret before it can run. It is disabled by default and never runs on an Issue, push, or pull-request event. See `docs/codex-issue-assist.md` before enabling it.
 
 GitHub Pages visibility must match the sensitivity of your maps. Do not enable a public Pages site for private, restricted, or rights-limited map copies. If private Pages is not available on your GitHub plan, use an authenticated application or external hosting for the picker instead.
 
@@ -86,6 +87,7 @@ GitHub Pages visibility must match the sensitivity of your maps. Do not enable a
 - Automatic Issue creation for map records added to the default branch
 - Manual Map intake Issue form for externally hosted maps
 - GitHub Pages deployment workflow for the landmark picker
+- Optional, manual-only Codex landmark-record completeness review
 - Side-by-side historic and modern-map control-point selection
 - Separate fit and independent check points
 - Affine-fit residuals, RMSE, coverage warnings, and overlay review for the sample map
@@ -115,4 +117,4 @@ pnpm dev
 pnpm run check
 ```
 
-For architecture, retention, and research guidance, see docs/architecture.md, docs/data-policy.md, docs/github-issue-workflow.md, and docs/research-scope.md.
+For architecture, retention, research, and optional Codex-assistance guidance, see docs/architecture.md, docs/data-policy.md, docs/github-issue-workflow.md, docs/research-scope.md, and docs/codex-issue-assist.md.

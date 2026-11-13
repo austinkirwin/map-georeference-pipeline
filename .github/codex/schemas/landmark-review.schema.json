@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Landmark record review",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "issue_number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "map_id": {
+      "type": ["string", "null"],
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "assessment": {
+      "type": "string",
+      "enum": ["incomplete", "needs-human-review"]
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 1800
+    },
+    "observations": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "control-points",
+              "fit-and-check-points",
+              "coverage",
+              "quality-metrics",
+              "provenance",
+              "issue-record",
+              "other"
+            ]
+          },
+          "detail": {
+            "type": "string",
+            "maxLength": 700
+          }
+        },
+        "required": ["category", "detail"]
+      }
+    },
+    "missing_evidence": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "string",
+        "maxLength": 500
+      }
+    },
+    "uncertainties": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "string",
+        "maxLength": 500
+      }
+    },
+    "recommended_next_steps": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "string",
+        "maxLength": 500
+      }
+    },
+    "requires_human_review": {
+      "const": true
+    },
+    "legal_status": {
+      "type": "string",
+      "const": "This is research assistance, not a legal or authoritative zoning determination."
+    }
+  },
+  "required": [
+    "issue_number",
+    "map_id",
+    "assessment",
+    "summary",
+    "observations",
+    "missing_evidence",
+    "uncertainties",
+    "recommended_next_steps",
+    "requires_human_review",
+    "legal_status"
+  ]
+}

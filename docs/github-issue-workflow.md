@@ -45,6 +45,23 @@ It loads maps/inbox/<map-id>/map.json and the named review image from the publis
 
 The picker must never contain a Personal Access Token, OAuth secret, or GitHub App private key. Automated write-back requires a backend or GitHub App with narrowly scoped authorization and explicit user consent.
 
+## Optional Codex landmark-record review
+
+The repository also includes a manual-only Codex workflow for reviewing the
+completeness and uncertainty of a landmark record. It is intentionally separate
+from map intake, processing, and review-state transitions.
+
+The workflow runs only when a trusted collaborator manually dispatches it from
+the default branch and checks its explicit run control. It selects the latest
+comment whose picker marker matches both the map and Issue, then produces a
+structured draft. A separate, opt-in job may post that draft back to the Issue.
+The model job has no GitHub write permission.
+
+This is a review aid, not an automated approval mechanism. It must not trigger
+from raw Issue text, close an Issue, apply labels, create a manifest, or assert
+a historical zoning result. Setup and data-handling details are in
+`docs/codex-issue-assist.md`.
+
 ## Approval boundary
 
 Before a map enters a geoprocessing job, a reviewer should verify:
