@@ -14,4 +14,4 @@ Use this folder only for a small, rights-cleared review copy. The full-resolutio
 
 See the map.json template in maps/templates for the required shape.
 
-The Pages deployment copies this inbox directory into its static artifact so the picker can read the review copy. Never place material here that should not be exposed to every person permitted to view the Pages site.
+The private Codespaces picker reads this inbox directory from the checked-out repository. Never place material here that should not be exposed to every authorized repository collaborator. A reviewer can instead select an authorized private Issue attachment locally; that file is not committed by the picker.

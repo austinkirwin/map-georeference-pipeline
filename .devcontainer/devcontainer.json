@@ -1,0 +1,13 @@
+{
+  "name": "Historical map review",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "postCreateCommand": "corepack enable && pnpm install --frozen-lockfile",
+  "postAttachCommand": "sh .devcontainer/start-picker.sh",
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": {
+      "label": "Private landmark picker",
+      "onAutoForward": "openPreview"
+    }
+  }
+}

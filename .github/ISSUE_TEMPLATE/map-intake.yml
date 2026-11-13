@@ -10,7 +10,7 @@ body:
 
         To create a map-backed Issue automatically, add maps/inbox/<map-id>/map.json and a small review image to the default branch.
 
-        Everything submitted here, including attachments, is public when the repository is public. Do not upload map files, restricted sources, credentials, or sensitive locations.
+        This workflow is designed for a private repository. Attach a small review image or PDF only when it may be shared with authorized repository collaborators. Do not upload restricted sources, credentials, or sensitive locations.
   - type: input
     id: map-id
     attributes:
@@ -44,8 +44,8 @@ body:
   - type: input
     id: map-file
     attributes:
-      label: Public source or storage location
-      description: Paste a durable public URL. Do not upload map images to a public Issue; add a rights-cleared review image only through a reviewed repository change.
+      label: Private source or storage location
+      description: Paste a durable source location available to authorized collaborators. You may attach a small authorized review image or PDF to this private Issue; large scans belong in approved storage.
     validations:
       required: true
   - type: textarea
@@ -65,7 +65,7 @@ body:
       options:
         - label: I have recorded the source and rights information to the best of my knowledge.
           required: true
-        - label: I confirm that any submitted source URL or repository review copy may be publicly shared.
+        - label: I confirm that any submitted source URL, attachment, or repository review copy may be shared with authorized repository collaborators.
           required: true
         - label: I understand this Issue is a research record, not a legal zoning determination.
           required: true

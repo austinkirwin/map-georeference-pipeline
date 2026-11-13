@@ -6,7 +6,7 @@ GitHub is the intake and review control plane:
 
 1. A map record enters under maps/inbox.
 2. A GitHub Action creates a map-specific Issue.
-3. The Issue links to the static Pages picker and preserves review discussion.
+3. The Issue links to a private Codespaces picker and preserves review discussion.
 4. A reviewer pastes a structured landmark record into the Issue.
 5. A reviewed manifest becomes the input to future geoprocessing.
 
@@ -31,9 +31,10 @@ GitHub control plane
  ├── map-intake Action   one Issue per map.json file
  └── GitHub Issue        provenance, review checklist, and landmark record
 
-React Pages picker
+React private Codespaces picker
  ├── HistoricMapPane       unwarped raster and pixel-space GCPs
  ├── ModernMapPane         MapLibre map, reference layers, geographic GCPs
+ ├── PrivateReviewLauncher repository-map or browser-only local-image entry
  ├── georeference.ts       deterministic affine fit and residual calculations
  ├── QA panels             coverage, RMSE, warnings, review state
  └── exported record       portable manifest or Issue-ready landmark table
@@ -44,6 +45,11 @@ Future service boundary
  ├── object storage        immutable source scans and derived artifacts
  └── PostGIS               temporal geometry, citations, queryable evidence
 ```
+
+The dev container starts the picker on port 5173. A reviewer can select an
+authorized image downloaded from a private Issue without committing it; that
+browser-only option is an intake aid, not a substitute for source metadata or
+reviewer approval.
 
 ## Why side-by-side comes first
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ControlPointTable } from "./components/ControlPointTable";
 import { HistoricMapPane } from "./components/HistoricMapPane";
 import { ModernMapPane } from "./components/ModernMapPane";
+import { PrivateReviewLauncher } from "./components/PrivateReviewLauncher";
 import { QaPanel } from "./components/QaPanel";
 import { ResearchFinding } from "./components/ResearchFinding";
 import { demoOverlayCorners, demoProject } from "./data/demoProject";
@@ -15,8 +16,10 @@ import type {
 import { analyzeGeoreference } from "./lib/georeference";
 import {
   getIssueContext,
+  localMapIdFromFileName,
   mapManifestUrl,
   parseMapIntake,
+  projectFromLocalReview,
   projectFromMapIntake
 } from "./lib/mapIntake";
 
@@ -24,13 +27,18 @@ type WorkspaceMode = "edit" | "review";
 type OverlayCorners = typeof demoOverlayCorners | undefined;
 
 export default function App() {
-  const issueContext = useMemo(() => getIssueContext(window.location.search), []);
+  const initialIssueContext = useMemo(() => getIssueContext(window.location.search), []);
   const [mode, setMode] = useState<WorkspaceMode>("edit");
   const [activeProject, setActiveProject] = useState<GeoreferenceProject>(demoProject);
   const [activeOverlayCorners, setActiveOverlayCorners] =
     useState<OverlayCorners>(demoOverlayCorners);
+  const [requestedMapId, setRequestedMapId] = useState(initialIssueContext.mapId);
+  const [activeIssueNumber, setActiveIssueNumber] = useState(initialIssueContext.issueNumber);
+  const [localReviewActive, setLocalReviewActive] = useState(false);
+  const [localImageUrl, setLocalImageUrl] = useState<string>();
+  const [showLauncher, setShowLauncher] = useState(!initialIssueContext.mapId);
   const [mapLoadState, setMapLoadState] = useState<"demo" | "loading" | "ready" | "error">(
-    issueContext.mapId ? "loading" : "demo"
+    initialIssueContext.mapId ? "loading" : "demo"
   );
   const [controlPoints, setControlPoints] = useState<GroundControlPoint[]>(() =>
     readStoredControlPoints(demoProject)
@@ -44,12 +52,12 @@ export default function App() {
   );
 
   useEffect(() => {
-    if (!issueContext.mapId) {
+    if (!requestedMapId) {
       return undefined;
     }
 
     let cancelled = false;
-    const mapId = issueContext.mapId;
+    const mapId = requestedMapId;
     setMapLoadState("loading");
     fetch(mapManifestUrl(mapId))
       .then((response) => {
@@ -65,6 +73,7 @@ export default function App() {
         const project = projectFromMapIntake(parseMapIntake(document));
         setActiveProject(project);
         setActiveOverlayCorners(undefined);
+        setLocalReviewActive(false);
         setMapLoadState("ready");
         setNotice(
           "Loaded map " +
@@ -80,21 +89,33 @@ export default function App() {
         setNotice(
           "The requested map intake record could not be loaded. Check that maps/inbox/" +
             mapId +
-            "/map.json exists on the published branch."
+            "/map.json exists in this Codespace."
         );
       });
 
     return () => {
       cancelled = true;
     };
-  }, [issueContext.mapId]);
+  }, [requestedMapId]);
 
   useEffect(() => {
-    setControlPoints(readStoredControlPoints(activeProject));
+    return () => {
+      if (localImageUrl) {
+        URL.revokeObjectURL(localImageUrl);
+      }
+    };
+  }, [localImageUrl]);
+
+  useEffect(() => {
+    setControlPoints(
+      localReviewActive
+        ? cloneControlPoints(activeProject.controlPoints)
+        : readStoredControlPoints(activeProject)
+    );
     setHydratedProjectId(activeProject.id);
     setPendingHistoricPoint(undefined);
     setMode("edit");
-  }, [activeProject]);
+  }, [activeProject, localReviewActive]);
 
   const analysis = useMemo(
     () =>
@@ -106,12 +127,13 @@ export default function App() {
     [activeProject.historicMap.heightPx, activeProject.historicMap.widthPx, controlPoints]
   );
   const canReviewOverlay = analysis.transform !== undefined && activeOverlayCorners !== undefined;
+  const isDemoProject = activeProject.id === demoProject.id;
 
   useEffect(() => {
-    if (hydratedProjectId === activeProject.id) {
+    if (hydratedProjectId === activeProject.id && !localReviewActive) {
       window.localStorage.setItem(storageKeyFor(activeProject.id), JSON.stringify(controlPoints));
     }
-  }, [activeProject.id, controlPoints, hydratedProjectId]);
+  }, [activeProject.id, controlPoints, hydratedProjectId, localReviewActive]);
 
   function handleHistoricPick(point: HistoricPixel) {
     setMode("edit");
@@ -167,6 +189,51 @@ export default function App() {
     setNotice("The saved control points for this map were cleared.");
   }
 
+  function handleOpenRepositoryMap(input: { mapId: string; issueNumber?: number }) {
+    setLocalImageUrl(undefined);
+    setRequestedMapId(input.mapId);
+    setActiveIssueNumber(input.issueNumber);
+    setLocalReviewActive(false);
+    setMapLoadState("loading");
+    setShowLauncher(false);
+    updateReviewLocation(input.mapId, input.issueNumber);
+  }
+
+  async function handleOpenLocalReview(input: { file: File; issueNumber?: number }) {
+    const imageUrl = URL.createObjectURL(input.file);
+    setNotice("Preparing the private local review copy in this browser session.");
+    try {
+      const dimensions = await readImageDimensions(imageUrl);
+      const project = projectFromLocalReview({
+        id: localMapIdFromFileName(input.file.name),
+        title: input.file.name,
+        imageUrl,
+        widthPx: dimensions.width,
+        heightPx: dimensions.height,
+        issueNumber: input.issueNumber
+      });
+      setLocalImageUrl(imageUrl);
+      setRequestedMapId(undefined);
+      setActiveIssueNumber(input.issueNumber);
+      setLocalReviewActive(true);
+      setActiveProject(project);
+      setActiveOverlayCorners(undefined);
+      setMapLoadState("ready");
+      setShowLauncher(false);
+      updateReviewLocation();
+      setNotice(
+        "Loaded " +
+          input.file.name +
+          " only in this browser session. Record source, date, and rights in the Issue before approval."
+      );
+    } catch {
+      URL.revokeObjectURL(imageUrl);
+      setNotice(
+        "The selected file could not be read as an image. Convert a map page to PNG, JPEG, or WebP."
+      );
+    }
+  }
+
   function exportManifest() {
     const manifest = {
       schemaVersion: activeProject.schemaVersion,
@@ -198,7 +265,7 @@ export default function App() {
       activeProject,
       controlPoints,
       analysis,
-      issueContext.issueNumber
+      activeIssueNumber
     );
     try {
       await navigator.clipboard.writeText(record);
@@ -313,7 +380,14 @@ export default function App() {
         {notice}
       </p>
 
-      {issueContext.mapId ? (
+      {showLauncher ? (
+        <PrivateReviewLauncher
+          onOpenIntake={handleOpenRepositoryMap}
+          onOpenLocalReview={handleOpenLocalReview}
+        />
+      ) : null}
+
+      {requestedMapId || localReviewActive ? (
         <section className="issue-context panel" aria-label="GitHub Issue workspace">
           <div>
             <p className="eyebrow">GitHub Issue workspace</p>
@@ -323,23 +397,28 @@ export default function App() {
                 : "Map review: " + activeProject.id}
             </h2>
             <p>
-              Map ID: <code>{issueContext.mapId}</code>
-              {issueContext.issueNumber ? " · Issue #" + issueContext.issueNumber : ""}
+              Map ID: <code>{activeProject.id}</code>
+              {activeIssueNumber ? " · Issue #" + activeIssueNumber : ""}
             </p>
             <p className="panel-note">
-              Pick landmarks here, then copy the record into the GitHub Issue. The Pages picker
-              never stores a GitHub token or posts on your behalf. Uploaded maps use side-by-side
-              review first; an overlay requires a reviewed server-side warp.
+              Pick landmarks here, then copy the record into the GitHub Issue. This private
+              Codespaces picker never stores a GitHub token or posts on your behalf. Maps use
+              side-by-side review first; an overlay requires a reviewed server-side warp.
             </p>
           </div>
-          <button
-            className="primary-button"
-            disabled={mapLoadState !== "ready" || controlPoints.length === 0}
-            onClick={copyIssueRecord}
-            type="button"
-          >
-            Copy landmark record for Issue
-          </button>
+          <div className="issue-context-actions">
+            <button className="text-button" onClick={() => setShowLauncher(true)} type="button">
+              Choose another map
+            </button>
+            <button
+              className="primary-button"
+              disabled={mapLoadState !== "ready" || controlPoints.length === 0}
+              onClick={copyIssueRecord}
+              type="button"
+            >
+              Copy landmark record for Issue
+            </button>
+          </div>
         </section>
       ) : null}
 
@@ -354,6 +433,7 @@ export default function App() {
           <ModernMapPane
             controlPoints={controlPoints}
             historicImageUrl={activeProject.historicMap.rawImageUrl}
+            initialView={activeProject.modernMapView}
             onPick={handleModernPick}
             overlayCorners={activeOverlayCorners ?? demoOverlayCorners}
             overlayOpacity={overlayOpacity}
@@ -366,6 +446,7 @@ export default function App() {
           <ModernMapPane
             controlPoints={controlPoints}
             historicImageUrl={activeProject.historicMap.rawImageUrl}
+            initialView={activeProject.modernMapView}
             onPick={handleModernPick}
             overlayCorners={activeOverlayCorners ?? demoOverlayCorners}
             overlayOpacity={overlayOpacity}
@@ -413,14 +494,15 @@ export default function App() {
 
       <footer className="app-footer">
         <p>
-          Demo fixture only. Historic zoning findings require the ordinance text, adopted zoning
-          map, temporal jurisdiction boundary, source citations, and human review.
+          {isDemoProject ? "Demo fixture only. " : "Draft research workspace. "}
+          Historic zoning findings require the ordinance text, adopted zoning map, temporal
+          jurisdiction boundary, source citations, and human review.
         </p>
         <div>
           <button className="text-button" onClick={resetCurrentProject} type="button">
             Clear saved points
           </button>
-          {issueContext.mapId ? (
+          {requestedMapId || localReviewActive ? (
             <button className="text-button" onClick={copyIssueRecord} type="button">
               Copy landmark record
             </button>
@@ -516,4 +598,29 @@ function escapeTableValue(value: string): string {
 
 function formatMetric(value: number | undefined): string {
   return value === undefined ? "not calculated" : value.toFixed(2) + " m";
+}
+
+function updateReviewLocation(mapId?: string, issueNumber?: number) {
+  const query = new URLSearchParams(window.location.search);
+  if (mapId) {
+    query.set("map", mapId);
+  } else {
+    query.delete("map");
+  }
+  if (issueNumber) {
+    query.set("issue", String(issueNumber));
+  } else {
+    query.delete("issue");
+  }
+  const suffix = query.toString();
+  window.history.replaceState(null, "", window.location.pathname + (suffix ? "?" + suffix : ""));
+}
+
+function readImageDimensions(imageUrl: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+    image.onerror = () => reject(new Error("Image could not be decoded."));
+    image.src = imageUrl;
+  });
 }

@@ -82,12 +82,13 @@ changes. Do not enable this requirement until it names an available reviewer.
 5. Review **Secrets and variables** and remove secrets that are no longer
    needed. Keep `OPENAI_API_KEY`, if you enable the manual Codex workflow, as
    an Actions secret only.
-6. Review installed GitHub Apps, deploy keys, webhooks, and Pages deployments
-   for unnecessary access.
+6. Review installed GitHub Apps, deploy keys, webhooks, and any legacy Pages
+   deployments for unnecessary access.
 
 The current workflows explicitly request only the permissions they need. Test
-the map-intake and Pages workflows after changing Actions defaults, because
-some intentionally require Issue or Pages write access.
+the map-intake and Quality workflows after changing Actions defaults. If a
+future public deployment workflow is added, review its permissions separately
+before enabling it.
 
 ## Moderate public participation
 
@@ -111,7 +112,8 @@ Before announcing the repository, confirm that:
 - a contributor cannot push directly to the default branch;
 - a pull request requires the intended review and Quality check;
 - Actions secrets are not visible in workflow logs;
-- Pages exposes only rights-cleared map material; and
+- no legacy Pages site remains enabled unless a separately reviewed public
+  deployment is intended; and
 - `pnpm run public:check` passes.
 
 For current GitHub instructions, see [repository roles for organizations](https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization), [rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository), [Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository), and [interaction limits](https://docs.github.com/en/communities/moderating-comments-and-conversations/limiting-interactions-in-your-repository).

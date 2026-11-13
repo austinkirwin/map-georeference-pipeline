@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { GroundControlPoint, MapCoordinate } from "../domain/types";
+import type { GroundControlPoint, MapCoordinate, ModernMapView } from "../domain/types";
 
 interface ModernMapPaneProps {
   controlPoints: GroundControlPoint[];
@@ -10,6 +10,7 @@ interface ModernMapPaneProps {
   overlayOpacity: number;
   historicImageUrl: string;
   overlayCorners: [[number, number], [number, number], [number, number], [number, number]];
+  initialView?: ModernMapView;
 }
 
 const sourceId = "control-points";
@@ -22,7 +23,8 @@ export function ModernMapPane({
   showOverlay,
   overlayOpacity,
   historicImageUrl,
-  overlayCorners
+  overlayCorners,
+  initialView
 }: ModernMapPaneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -53,8 +55,8 @@ export function ModernMapPane({
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      center: [-88.261, 40.118],
-      zoom: 13,
+      center: [initialView?.longitude ?? 0, initialView?.latitude ?? 20],
+      zoom: initialView?.zoom ?? 1.5,
       style: {
         version: 8,
         sources: {
@@ -118,7 +120,13 @@ export function ModernMapPane({
       map.remove();
       mapRef.current = null;
     };
-  }, [historicImageUrl, overlayCorners]);
+  }, [
+    historicImageUrl,
+    initialView?.latitude,
+    initialView?.longitude,
+    initialView?.zoom,
+    overlayCorners
+  ]);
 
   return (
     <section className="map-pane modern-pane" aria-label="Modern reference map">

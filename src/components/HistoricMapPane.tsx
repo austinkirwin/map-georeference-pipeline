@@ -40,7 +40,7 @@ export function HistoricMapPane({
       <div className="historic-map-stage">
         <img
           src={map.rawImageUrl}
-          alt="Fictional 1930 Riverton historical map sample"
+          alt={map.title + " historical map"}
           draggable={false}
           onClick={handleImageClick}
         />

@@ -1,7 +1,7 @@
 # Public release checklist
 
-Use this checklist before changing repository visibility or enabling a public
-GitHub Pages deployment. A public repository exposes its Git history, Issues,
+Use this checklist before changing repository visibility or enabling any public
+map-viewing deployment. A public repository exposes its Git history, Issues,
 workflow logs, and every review image committed under `maps/inbox/`.
 
 ## Required owner decisions
@@ -45,17 +45,19 @@ the disruption before publication.
    exist before relying on the public map-intake form. The map-manifest
    workflow creates them when it first processes an intake; otherwise create
    them in the repository's Labels settings.
-4. Configure Pages to publish with GitHub Actions only after the checks pass.
+4. Keep Pages disabled unless a separately reviewed public deployment is added
+   after the checks pass.
 5. Add an initial interaction limit if public Issue spam becomes a problem.
-6. Confirm the Pages URL displays only rights-cleared maps and source metadata.
+6. Confirm no legacy Pages URL remains enabled, or that an intentionally added
+   public deployment displays only rights-cleared maps and source metadata.
 
 ## OSM basemap capacity
 
-The picker currently uses the public OpenStreetMap raster tile service for
-ordinary interactive viewing. Do not add prefetching, bulk tile download, or
-offline-tile features. If public usage becomes substantial, move to a provider
-with terms and capacity appropriate for the traffic, and keep attribution
-visible.
+The private picker currently uses the public OpenStreetMap raster tile service
+for ordinary interactive viewing. Do not add prefetching, bulk tile download,
+or offline-tile features. If a future public deployment becomes substantial,
+move to a provider with terms and capacity appropriate for the traffic, and
+keep attribution visible.
 
 ## Known current blocker
 

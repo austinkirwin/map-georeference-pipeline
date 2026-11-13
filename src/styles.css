@@ -143,6 +143,13 @@ h2 {
   border-left: 3px solid #0d6e68;
 }
 
+.issue-context-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
 .issue-context h2 {
   margin-top: 0.2rem;
 }
@@ -303,6 +310,75 @@ h2 {
 
 .panel {
   padding: 1rem;
+}
+
+.private-review-launcher {
+  margin-bottom: 1rem;
+}
+
+.private-review-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+.private-review-form {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.9rem;
+  border: 1px solid #d8e2dc;
+  border-radius: 0.45rem;
+  background: #f8faf7;
+}
+
+.private-review-form h3 {
+  margin: 0;
+  color: #274b47;
+  font-size: 0.9rem;
+}
+
+.private-review-form p {
+  margin: 0 0 0.2rem;
+  color: #637a76;
+  font-size: 0.77rem;
+  line-height: 1.4;
+}
+
+.private-review-form input:not([type="file"]) {
+  width: 100%;
+  border: 1px solid #a7bab5;
+  border-radius: 0.35rem;
+  background: #fff;
+  color: #294a46;
+  padding: 0.55rem 0.6rem;
+}
+
+.private-review-form input[type="file"] {
+  width: 100%;
+  color: #405c59;
+  font-size: 0.78rem;
+}
+
+.private-review-form .primary-button {
+  justify-self: start;
+  margin-top: 0.25rem;
+}
+
+.file-name,
+.form-error {
+  margin: 0.75rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.file-name {
+  color: #637a76;
+}
+
+.form-error {
+  color: #9c441f;
+  font-weight: 700;
 }
 
 .panel-heading {
@@ -644,6 +720,10 @@ td small {
   .workspace-sidebar {
     grid-column: 1 / -1;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .private-review-options {
+    grid-template-columns: 1fr;
   }
 
   .lower-panels {

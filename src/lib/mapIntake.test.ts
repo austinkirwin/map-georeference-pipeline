@@ -3,7 +3,9 @@ import {
   getIssueContext,
   mapManifestUrl,
   mapReviewImageUrl,
+  localMapIdFromFileName,
   parseMapIntake,
+  projectFromLocalReview,
   projectFromMapIntake
 } from "./mapIntake";
 import kentwoodIntake from "../../maps/inbox/kentwood-mi-zoning-1970/map.json";
@@ -39,7 +41,7 @@ describe("GitHub map intake helpers", () => {
     );
   });
 
-  it("creates Pages-safe map and image URLs", () => {
+  it("creates root-relative map and image URLs", () => {
     expect(mapManifestUrl("riverton-1930-sheet-01", "/map-georeference-pipeline/")).toBe(
       "/map-georeference-pipeline/maps/inbox/riverton-1930-sheet-01/map.json"
     );
@@ -53,9 +55,41 @@ describe("GitHub map intake helpers", () => {
 
     expect(project.id).toBe("riverton-1930-sheet-01");
     expect(project.controlPoints).toEqual([]);
+    expect(project.temporalJurisdictions).toEqual([]);
+    expect(project.zoningEvidence).toEqual([]);
     expect(project.historicMap.rawImageUrl).toBe(
       "/repo/maps/inbox/riverton-1930-sheet-01/review-copy.jpg"
     );
+  });
+
+  it("keeps the optional modern-map view with the intake project", () => {
+    const project = projectFromMapIntake(
+      parseMapIntake({
+        ...intake,
+        modernMapView: { longitude: -88.25, latitude: 40.1, zoom: 14 }
+      }),
+      "/repo/"
+    );
+
+    expect(project.modernMapView).toEqual({ longitude: -88.25, latitude: 40.1, zoom: 14 });
+  });
+
+  it("builds a browser-only project for a private local review copy", () => {
+    const project = projectFromLocalReview({
+      id: "local-1970-zoning-map",
+      title: "1970 Zoning Map.pdf",
+      imageUrl: "blob:private-review-copy",
+      widthPx: 1000,
+      heightPx: 800,
+      issueNumber: 42
+    });
+
+    expect(project.controlPoints).toEqual([]);
+    expect(project.temporalJurisdictions).toEqual([]);
+    expect(project.zoningEvidence).toEqual([]);
+    expect(project.historicMap.rawImageUrl).toBe("blob:private-review-copy");
+    expect(project.historicMap.source.repository).toContain("Issue #42");
+    expect(localMapIdFromFileName("1970 Zoning Map.pdf")).toBe("local-1970-zoning-map");
   });
 
   it("parses the Kentwood review-map intake fixture", () => {
@@ -66,5 +100,6 @@ describe("GitHub map intake helpers", () => {
     expect(project.historicMap.rawImageUrl).toBe(
       "/repo/maps/inbox/kentwood-mi-zoning-1970/review-copy.png"
     );
+    expect(project.modernMapView).toEqual({ longitude: -85.61, latitude: 42.88, zoom: 12 });
   });
 });

@@ -4,7 +4,7 @@
 
 - **Map contributor** adds a small review copy and intake record, or opens the Map intake Issue form.
 - **GitHub Action** creates the canonical map Issue when a new map.json record reaches the default branch.
-- **Reviewer** uses the linked Pages picker, checks source/provenance, and pastes the landmark record into the Issue.
+- **Reviewer** uses the linked private Codespaces picker, checks source/provenance, and pastes the landmark record into the Issue.
 - **Processor** later turns a reviewed manifest into GDAL artifacts, COGs, and spatial records.
 
 ## Intake contract
@@ -17,7 +17,7 @@ maps/inbox/<map-id>/
   review-copy.<supported-image-extension>
 ```
 
-map.json is intentionally small, structured metadata. It should point to the durable original scan if that scan does not belong in Git.
+map.json is intentionally small, structured metadata. It should point to the durable original scan if that scan does not belong in Git. A review copy is appropriate only when all authorized repository collaborators may access it.
 
 The map-intake Action only reacts to map.json paths on the default branch. It does not open or parse raster files, so an uploaded map cannot cause the workflow to execute untrusted map content.
 
@@ -27,21 +27,26 @@ The generated Issue includes:
 
 - a hidden, deterministic intake marker used to avoid duplicate Issues;
 - a link to the map intake record;
-- a link to the Pages picker with the map identifier and Issue number;
+- a link to open or resume a private Codespace, plus the map identifier and Issue number to enter in the picker;
 - source and quality-review checklists;
 - labels for intake and landmark-selection state.
 
 The Issue is the human-readable evidence trail. It should not be treated as the system of record for large source files or derived rasters.
 
-## Picker contract
+## Private picker contract
 
-The Pages picker accepts:
+The Codespaces picker can open a repository intake record using:
 
 ```text
 ?map=<map-id>&issue=<issue-number>
 ```
 
-It loads maps/inbox/<map-id>/map.json and the named review image from the published repository branch. It can save temporary work in the browser and copy a Markdown landmark table for an Issue comment.
+It loads maps/inbox/<map-id>/map.json and the named review image from the checked-out repository. It can also open an authorized PNG, JPEG, or WebP selected locally after a reviewer downloads it from a private Issue. The local file is not uploaded, committed, or sent to GitHub by the picker. A PDF must be converted to a review image before this browser-only route can use it.
+
+The picker can save repository-map work in the browser and copy a Markdown landmark table for an Issue comment. Local-file sessions intentionally do not persist control points after the tab is closed.
+
+Review the picker port in the Codespaces Ports panel and keep it private. The
+workflow does not make a Codespaces preview public on behalf of a reviewer.
 
 The picker must never contain a Personal Access Token, OAuth secret, or GitHub App private key. Automated write-back requires a backend or GitHub App with narrowly scoped authorization and explicit user consent.
 

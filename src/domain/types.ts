@@ -25,6 +25,12 @@ export interface MapCoordinate {
   crs: string;
 }
 
+export interface ModernMapView {
+  longitude: number;
+  latitude: number;
+  zoom: number;
+}
+
 export interface GroundControlPoint {
   id: string;
   label: string;
@@ -101,6 +107,7 @@ export interface GeoreferenceProject {
   id: string;
   title: string;
   historicMap: HistoricMap;
+  modernMapView?: ModernMapView;
   referenceLayers: ReferenceLayer[];
   controlPoints: GroundControlPoint[];
   temporalJurisdictions: TemporalJurisdiction[];

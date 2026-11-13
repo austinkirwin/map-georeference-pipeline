@@ -81,8 +81,15 @@ jobs:
 
               const rootUrl = "https://github.com/" + owner + "/" + repo;
               const manifestUrl = rootUrl + "/blob/" + context.sha + "/" + manifestPath;
-              const pickerUrl =
-                "https://" + owner + ".github.io/" + repo + "/?map=" + encodeURIComponent(mapId);
+              const codespaceUrl =
+                "https://codespaces.new/" +
+                owner +
+                "/" +
+                repo +
+                "/tree/" +
+                encodeURIComponent(context.payload.repository.default_branch) +
+                "?quickstart=1";
+              const issueNumberToken = "__ISSUE_NUMBER__";
               const body = [
                 marker,
                 "# Map intake: " + mapId,
@@ -93,9 +100,10 @@ jobs:
                 "- [Map intake manifest](" + manifestUrl + ")",
                 "",
                 "## Landmark selection",
-                "1. After the Pages deployment completes, open the [landmark picker](" + pickerUrl + ").",
-                "2. Pair durable historic and modern landmarks.",
-                "3. Copy the issue-ready landmark record from the picker and paste it in a comment below.",
+                "1. [Open or resume a private Codespace](" + codespaceUrl + ").",
+                "2. The dev container starts the landmark picker on port 5173. In its Private review workspace, enter map ID `" + mapId + "` and Issue #" + issueNumberToken + ".",
+                "3. Pair durable historic and modern landmarks.",
+                "4. Copy the issue-ready landmark record from the picker and paste it in a comment below.",
                 "",
                 "## Review checklist",
                 "- [ ] Verify source, rights, and map date.",
@@ -118,7 +126,7 @@ jobs:
                 owner,
                 repo,
                 issue_number: issue.data.number,
-                body: body.replace(pickerUrl, pickerUrl + "&issue=" + issue.data.number)
+                body: body.replace(issueNumberToken, String(issue.data.number))
               });
               core.notice("Created Issue #" + issue.data.number + " for " + mapId + ".");
             }

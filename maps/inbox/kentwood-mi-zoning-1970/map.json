@@ -8,6 +8,11 @@
   "widthPx": 4090,
   "heightPx": 3790,
   "targetCrs": "EPSG:3857",
+  "modernMapView": {
+    "longitude": -85.61,
+    "latitude": 42.88,
+    "zoom": 12
+  },
   "source": {
     "title": "1970 Zoning Map (user-supplied PDF)",
     "repository": "User-supplied local copy",

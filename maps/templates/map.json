@@ -8,6 +8,11 @@
   "widthPx": 4000,
   "heightPx": 3000,
   "targetCrs": "EPSG:3857",
+  "modernMapView": {
+    "longitude": -88.25,
+    "latitude": 40.1,
+    "zoom": 13
+  },
   "source": {
     "title": "Archive or collection title",
     "repository": "Archive name",

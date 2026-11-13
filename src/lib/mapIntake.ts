@@ -1,5 +1,5 @@
 import { demoProject } from "../data/demoProject";
-import type { GeoreferenceProject, SourceCitation } from "../domain/types";
+import type { GeoreferenceProject, ModernMapView, SourceCitation } from "../domain/types";
 
 const mapIdPattern = /^[a-z0-9][a-z0-9-]{1,80}$/;
 const fileNamePattern = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
@@ -14,6 +14,7 @@ export interface MapIntakeDocument {
   widthPx: number;
   heightPx: number;
   targetCrs: string;
+  modernMapView?: ModernMapView;
   source: SourceCitation;
   storage?: {
     originalUrl?: string;
@@ -83,6 +84,7 @@ export function parseMapIntake(value: unknown): MapIntakeDocument {
     widthPx: requiredPositiveInteger(value, "widthPx"),
     heightPx: requiredPositiveInteger(value, "heightPx"),
     targetCrs: requiredString(value, "targetCrs"),
+    modernMapView: optionalModernMapView(value.modernMapView),
     source: {
       id: "source-" + id,
       title: requiredString(source, "title"),
@@ -104,6 +106,7 @@ export function projectFromMapIntake(
     ...demoProject,
     id: intake.id,
     title: intake.title,
+    modernMapView: intake.modernMapView,
     historicMap: {
       ...demoProject.historicMap,
       id: intake.id,
@@ -117,6 +120,8 @@ export function projectFromMapIntake(
       targetCrs: intake.targetCrs
     },
     controlPoints: [],
+    temporalJurisdictions: [],
+    zoningEvidence: [],
     sampleFinding: {
       address: "No historical address query selected",
       queryDate: intake.mapDate,
@@ -127,6 +132,67 @@ export function projectFromMapIntake(
       disclaimer: "Research aid only. A map alignment alone is not a legal zoning determination."
     }
   };
+}
+
+export interface LocalReviewProjectInput {
+  id: string;
+  title: string;
+  imageUrl: string;
+  widthPx: number;
+  heightPx: number;
+  issueNumber?: number;
+}
+
+export function projectFromLocalReview(input: LocalReviewProjectInput): GeoreferenceProject {
+  assertValidMapId(input.id);
+  const source: SourceCitation = {
+    id: "source-" + input.id,
+    title: "Private local review copy",
+    repository: input.issueNumber
+      ? "GitHub Issue #" + input.issueNumber + " attachment or collaborator-provided file"
+      : "Collaborator-provided local file",
+    accessedAt: new Date().toISOString().slice(0, 10),
+    rights: "Not published by this picker. Verify source terms and provenance before approval."
+  };
+
+  return {
+    ...demoProject,
+    id: input.id,
+    title: input.title,
+    modernMapView: undefined,
+    historicMap: {
+      ...demoProject.historicMap,
+      id: input.id,
+      title: input.title,
+      placeName: "Private review location not yet recorded",
+      mapDate: "Date not yet recorded",
+      rawImageUrl: input.imageUrl,
+      widthPx: input.widthPx,
+      heightPx: input.heightPx,
+      source
+    },
+    controlPoints: [],
+    temporalJurisdictions: [],
+    zoningEvidence: [],
+    sampleFinding: {
+      address: "No historical address query selected",
+      queryDate: "Date not yet recorded",
+      result: "inconclusive",
+      zoningEvidenceIds: [],
+      explanation:
+        "This private local review copy has no recorded jurisdiction, historical date, or zoning evidence yet.",
+      disclaimer: "Research aid only. A map alignment alone is not a legal zoning determination."
+    }
+  };
+}
+
+export function localMapIdFromFileName(fileName: string): string {
+  const stem = fileName.replace(/\.[^.]+$/, "").toLowerCase();
+  const normalized = stem
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 70);
+  return "local-" + (normalized.length >= 2 ? normalized : "review-map");
 }
 
 function optionalStorage(value: unknown): MapIntakeDocument["storage"] {
@@ -140,6 +206,29 @@ function optionalStorage(value: unknown): MapIntakeDocument["storage"] {
     originalUrl: optionalString(value, "originalUrl"),
     sha256: optionalString(value, "sha256")
   };
+}
+
+function optionalModernMapView(value: unknown): ModernMapView | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isRecord(value)) {
+    throw new Error("modernMapView must be an object when supplied.");
+  }
+  const longitude = requiredFiniteNumber(value, "longitude");
+  const latitude = requiredFiniteNumber(value, "latitude");
+  const zoom = requiredFiniteNumber(value, "zoom");
+  if (
+    longitude < -180 ||
+    longitude > 180 ||
+    latitude < -90 ||
+    latitude > 90 ||
+    zoom < 0 ||
+    zoom > 22
+  ) {
+    throw new Error("modernMapView has invalid coordinates or zoom.");
+  }
+  return { longitude, latitude, zoom };
 }
 
 function joinBaseUrl(baseUrl: string, path: string): string {
@@ -164,6 +253,14 @@ function requiredPositiveInteger(record: Record<string, unknown>, key: string): 
   const value = record[key];
   if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
     throw new Error(key + " must be a positive integer.");
+  }
+  return value;
+}
+
+function requiredFiniteNumber(record: Record<string, unknown>, key: string): number {
+  const value = record[key];
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(key + " must be a finite number.");
   }
   return value;
 }

@@ -73,6 +73,11 @@ export const demoProject: GeoreferenceProject = {
     status: "draft",
     targetCrs: "EPSG:3857"
   },
+  modernMapView: {
+    longitude: -88.261,
+    latitude: 40.118,
+    zoom: 13
+  },
   referenceLayers: [
     {
       id: "osm-basemap",
