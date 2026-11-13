@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "0.1",
+  "id": "kentwood-mi-zoning-1970",
+  "title": "Zoning Map - City of Kentwood, Kent County, Michigan",
+  "placeName": "Kentwood, Michigan",
+  "mapDate": "1970-01-01",
+  "reviewImage": "review-copy.png",
+  "widthPx": 4090,
+  "heightPx": 3790,
+  "targetCrs": "EPSG:3857",
+  "source": {
+    "title": "1970 Zoning Map (user-supplied PDF)",
+    "repository": "User-supplied local copy",
+    "locator": "Single-sheet PDF titled 'Zoning Map - City of Kentwood, Kent County, Michigan'",
+    "accessedAt": "2026-11-12",
+    "rights": "Unknown; testing copy only. Verify archival provenance and rights before publication."
+  },
+  "storage": {
+    "sha256": "3ecd92497d0e097eb62dc49aa306e1952763f2fc22dac4939ff2390dd2341eb5"
+  }
+}

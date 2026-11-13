@@ -6,6 +6,7 @@ import {
   parseMapIntake,
   projectFromMapIntake
 } from "./mapIntake";
+import kentwoodIntake from "../../maps/inbox/kentwood-mi-zoning-1970/map.json";
 
 const intake = {
   schemaVersion: "0.1",
@@ -54,6 +55,16 @@ describe("GitHub map intake helpers", () => {
     expect(project.controlPoints).toEqual([]);
     expect(project.historicMap.rawImageUrl).toBe(
       "/repo/maps/inbox/riverton-1930-sheet-01/review-copy.jpg"
+    );
+  });
+
+  it("parses the Kentwood review-map intake fixture", () => {
+    const project = projectFromMapIntake(parseMapIntake(kentwoodIntake), "/repo/");
+
+    expect(project.id).toBe("kentwood-mi-zoning-1970");
+    expect(project.historicMap.placeName).toBe("Kentwood, Michigan");
+    expect(project.historicMap.rawImageUrl).toBe(
+      "/repo/maps/inbox/kentwood-mi-zoning-1970/review-copy.png"
     );
   });
 });
