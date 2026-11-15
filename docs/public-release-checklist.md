@@ -51,13 +51,15 @@ the disruption before publication.
 6. Confirm no legacy Pages URL remains enabled, or that an intentionally added
    public deployment displays only rights-cleared maps and source metadata.
 
-## OSM basemap capacity
+## Reference basemap capacity
 
-The private picker currently uses the public OpenStreetMap raster tile service
-for ordinary interactive viewing. Do not add prefetching, bulk tile download,
-or offline-tile features. If a future public deployment becomes substantial,
-move to a provider with terms and capacity appropriate for the traffic, and
-keep attribution visible.
+The private picker defaults to the OpenFreeMap Liberty style for ordinary
+interactive viewing. It is an as-is reference service, not an authoritative
+municipal source or an SLA-backed production dependency. Do not add
+prefetching, bulk tile download, or offline-tile features. For a substantial
+deployment, configure a provider with terms and capacity appropriate for the
+traffic, retain its attribution, and prefer authoritative municipal layers for
+research decisions.
 
 ## Known current blocker
 

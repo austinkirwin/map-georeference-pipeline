@@ -80,10 +80,10 @@ export const demoProject: GeoreferenceProject = {
   },
   referenceLayers: [
     {
-      id: "osm-basemap",
-      name: "OpenStreetMap standard raster basemap",
+      id: "openfreemap-basemap",
+      name: "OpenFreeMap Liberty basemap",
       kind: "basemap",
-      source: "https://www.openstreetmap.org/copyright",
+      source: "https://openfreemap.org/",
       status: "enabled",
       authority: "reference"
     },

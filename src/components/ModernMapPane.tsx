@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { GroundControlPoint, MapCoordinate, ModernMapView } from "../domain/types";
+import { resolveReferenceBasemap } from "../lib/basemap";
 
 interface ModernMapPaneProps {
   controlPoints: GroundControlPoint[];
@@ -16,6 +17,7 @@ interface ModernMapPaneProps {
 const sourceId = "control-points";
 const overlaySourceId = "historical-overlay";
 const overlayLayerId = "historical-overlay-layer";
+const referenceBasemap = resolveReferenceBasemap(import.meta.env);
 
 export function ModernMapPane({
   controlPoints,
@@ -32,6 +34,8 @@ export function ModernMapPane({
   const pointsRef = useRef(controlPoints);
   const showOverlayRef = useRef(showOverlay);
   const overlayOpacityRef = useRef(overlayOpacity);
+  const [runtimeBasemapError, setRuntimeBasemapError] = useState<string>();
+  const basemapMessage = runtimeBasemapError ?? referenceBasemap.configurationNotice;
 
   useEffect(() => {
     onPickRef.current = onPick;
@@ -57,27 +61,17 @@ export function ModernMapPane({
       container: containerRef.current,
       center: [initialView?.longitude ?? 0, initialView?.latitude ?? 20],
       zoom: initialView?.zoom ?? 1.5,
-      style: {
-        version: 8,
-        sources: {
-          osm: {
-            type: "raster",
-            tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-            tileSize: 256,
-            attribution: "© OpenStreetMap contributors"
-          }
-        },
-        layers: [
-          {
-            id: "osm",
-            type: "raster",
-            source: "osm"
-          }
-        ]
-      }
+      style: referenceBasemap.style
     });
     mapRef.current = map;
     map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+    const handleMapError = () => {
+      setRuntimeBasemapError(
+        "The reference basemap could not be loaded. Check its provider settings and use an approved reference source."
+      );
+    };
+    map.on("error", handleMapError);
 
     map.on("load", () => {
       map.addSource(sourceId, {
@@ -117,6 +111,7 @@ export function ModernMapPane({
     });
 
     return () => {
+      map.off("error", handleMapError);
       map.remove();
       mapRef.current = null;
     };
@@ -135,12 +130,17 @@ export function ModernMapPane({
           <p className="eyebrow">Step 2 · modern reference</p>
           <h2>Current map layers</h2>
         </div>
-        <span className="source-badge">OSM reference</span>
+        <span className="source-badge">{referenceBasemap.displayName}</span>
       </div>
       <p className="pane-instruction">
-        Choose the same landmark. OSM is for orientation; authoritative municipal layers belong here
-        before publication.
+        Choose the same landmark. This reference map is for orientation; authoritative municipal
+        layers belong here before publication.
       </p>
+      {basemapMessage ? (
+        <p className="basemap-alert" role="alert">
+          {basemapMessage}
+        </p>
+      ) : null}
       <div className="modern-map-stage" ref={containerRef} />
       <div className="pane-footer">
         <span>Green = fit point</span>

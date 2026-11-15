@@ -38,6 +38,19 @@ Each Issue therefore links to the repository's Codespaces entry point. A reviewe
 
 The picker does not contain a GitHub token and does not post comments automatically. A local review-image option lets a reviewer select an authorized PNG, JPEG, or WebP downloaded from a private Issue; that image remains in the browser session and is not uploaded or committed by the picker. Writing to GitHub from the browser would require a separately approved GitHub App or OAuth-backed service. That is intentionally outside this baseline.
 
+## Reference basemap
+
+The picker defaults to the no-key OpenFreeMap Liberty style rather than the
+public OpenStreetMap Standard tile server. It is an orientation aid, not an
+authoritative source. For durable research, configure an approved map provider
+or municipal WMS/WMTS layer and retain the required attribution.
+
+`VITE_REFERENCE_STYLE_URL` can set a public HTTPS MapLibre style URL.
+Alternatively, set both `VITE_REFERENCE_TILE_URL` and
+`VITE_REFERENCE_TILE_ATTRIBUTION` for an approved public raster source. These
+variables are delivered to the browser, so they must never contain API keys,
+tokens, or other credentials. See `.env.example`.
+
 ## Add a map
 
 Create a folder like this:
