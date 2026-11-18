@@ -1,0 +1,92 @@
+name: Stage Dropbox map intake
+
+on:
+  workflow_dispatch:
+    inputs:
+      dropbox_path:
+        description: "Folder below DROPBOX_INGEST_ROOT, for example /intake/example-map"
+        required: true
+        type: string
+      create_pull_request:
+        description: "Create a review PR after validation (leave unchecked for a dry run)"
+        required: true
+        default: false
+        type: boolean
+
+run-name: Dropbox intake ${{ inputs.dropbox_path }}
+
+permissions: {}
+
+concurrency:
+  group: dropbox-map-intake-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  stage:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: dropbox-intake
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Download and validate the Dropbox intake bundle
+        id: intake
+        env:
+          CREATE_PULL_REQUEST: ${{ inputs.create_pull_request }}
+          DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
+          DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
+          DROPBOX_REFRESH_TOKEN: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
+          DROPBOX_INGEST_ROOT: ${{ vars.DROPBOX_INGEST_ROOT || '/intake' }}
+          DROPBOX_PATH: ${{ inputs.dropbox_path }}
+        run: |
+          args=(--path "$DROPBOX_PATH")
+          if [ "$CREATE_PULL_REQUEST" != "true" ]; then
+            args+=(--dry-run)
+          fi
+          node scripts/dropbox-map-intake.mjs "${args[@]}"
+
+      - name: Create a human-review intake pull request
+        if: inputs.create_pull_request == true
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GH_TOKEN: ${{ github.token }}
+          MAP_ID: ${{ steps.intake.outputs.map_id }}
+          REVIEW_IMAGE: ${{ steps.intake.outputs.review_image }}
+        run: |
+          branch="automation/dropbox-intake-${MAP_ID}-${GITHUB_RUN_ID}"
+          git switch --create "$branch"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "maps/inbox/$MAP_ID"
+          if git diff --cached --quiet; then
+            echo "Validated Dropbox intake produced no staged map files." >&2
+            exit 1
+          fi
+          git commit -m "chore(intake): stage Dropbox map $MAP_ID"
+          git push --set-upstream origin "$branch"
+          cat > "$RUNNER_TEMP/dropbox-intake-pr.md" <<EOF
+          ## Dropbox map intake (review required)
+
+          This PR stages the validated Dropbox review bundle for \`$MAP_ID\`.
+
+          - Review image: \`$REVIEW_IMAGE\`
+          - The original scan remains in Dropbox; it was not downloaded into Git history.
+          - The workflow added Dropbox review-copy provenance (file ID, revision, content hash, and SHA-256) to the manifest.
+
+          Before merging, a human must confirm source rights, source metadata, map date, review-image suitability, and that no restricted or archival source was staged.
+
+          Merging to the default branch triggers the existing map-intake workflow, which creates the review Issue. This workflow does not create Issues, approve landmarks, or make a zoning determination.
+          EOF
+          gh pr create \
+            --base "$DEFAULT_BRANCH" \
+            --head "$branch" \
+            --title "Map intake: $MAP_ID" \
+            --body-file "$RUNNER_TEMP/dropbox-intake-pr.md"

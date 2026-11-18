@@ -10,6 +10,11 @@ GitHub is the intake and review control plane:
 4. A reviewer pastes a structured landmark record into the Issue.
 5. A reviewed manifest becomes the input to future geoprocessing.
 
+An optional Dropbox ingress stages a review PR before step 1. It has read-only
+Dropbox access and cannot create Issues or merge its own result. This keeps
+Dropbox ingestion separate from the default-branch and reviewer-approval
+boundaries.
+
 The browser picker remains intentionally static. It demonstrates the critical human interaction without embedding GitHub credentials in client code:
 
 1. View an unwarped historical scan in pixel space.
@@ -27,6 +32,7 @@ The demo uses a fictional scan and fictional evidence. It is an interface and da
 ```text
 GitHub control plane
  ├── maps/inbox          versioned map intake metadata and small review copies
+ ├── Dropbox intake       manual App-Folder download, validation, and review PR
  ├── Issue Form          manual intake for externally hosted maps
  ├── map-intake Action   one Issue per map.json file
  └── GitHub Issue        provenance, review checklist, and landmark record

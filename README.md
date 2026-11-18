@@ -8,7 +8,7 @@ The project is a research workflow. It does not make legal determinations automa
 
 ## GitHub workflow
 
-1. Add a small, authorized review copy and its map.json intake record under maps/inbox/<map-id>/, or open a private Map intake Issue with a durable source link.
+1. Add a small, authorized review copy and its map.json intake record under maps/inbox/<map-id>/, stage one from Dropbox through a review PR, or open a private Map intake Issue with a durable source link.
 2. Merge the repository intake record to the default branch when one is appropriate.
 3. The map-intake GitHub Action creates one Issue for that map.
 4. From the Issue, open or resume a private Codespace. The dev container starts the landmark picker on port 5173.
@@ -73,6 +73,20 @@ Commit the map.json file and a small review image only when every authorized rep
 
 For a map that should not be committed to the repository, use the private GitHub Issue form called Map intake. Include a durable source location available to authorized collaborators. A reviewer can attach or download a small authorized image and select it in the Codespaces picker; the picker never uploads that local file.
 
+## Dropbox intake (manual, review-first)
+
+A Dropbox delivery can stage a small, authorized review copy into a pull
+request instead of adding a map by hand. The workflow is manual by default and
+uses a Dropbox App Folder with read-only scopes. It validates exactly one
+`map.json` and one PNG, JPEG, or WebP review image, records Dropbox
+file/revision/checksum provenance, then opens a PR. A human must review and
+merge that PR before the normal map-intake Action creates an Issue.
+
+The original scan stays in Dropbox. Do not use this path for TIFFs, PDFs,
+COGs, tiles, restricted scans, or other material prohibited from ordinary Git
+history. See [Dropbox map intake](docs/dropbox-intake.md) for setup and run
+instructions.
+
 ## Repository map folders
 
 ```text
@@ -92,12 +106,14 @@ After this branch is merged to the repository's default branch:
 2. In repository Settings, Pages, set the source to **None** if a previous Pages site exists. Removing the deployment workflow prevents future deployments but does not automatically take down an existing site.
 3. Open the repository through [GitHub Codespaces](https://github.com/features/codespaces). The included dev container installs dependencies and starts the picker on port 5173. Review the port's visibility in the Codespaces Ports panel and keep it private for map review.
 4. Optional: the manual Codex landmark-record reviewer needs an `OPENAI_API_KEY` Actions secret before it can run. It is disabled by default and never runs on an Issue, push, or pull-request event. See `docs/codex-issue-assist.md` before enabling it.
+5. Optional: configure the protected `dropbox-intake` environment and its three Dropbox OAuth secrets to use the manual Dropbox-to-review-PR workflow. See `docs/dropbox-intake.md`.
 
 ## Current capabilities
 
 - Map intake folders and metadata template
 - Automatic Issue creation for map records added to the default branch
 - Manual Map intake Issue form for externally hosted maps
+- Manual Dropbox-to-review-PR intake for small authorized review copies
 - Private Codespaces dev container for the landmark picker
 - Browser-only opening of authorized private Issue attachments or local review images
 - Optional, manual-only Codex landmark-record completeness review

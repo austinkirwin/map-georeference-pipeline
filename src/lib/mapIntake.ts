@@ -19,6 +19,13 @@ export interface MapIntakeDocument {
   storage?: {
     originalUrl?: string;
     sha256?: string;
+    reviewCopy?: {
+      provider: "dropbox";
+      fileId: string;
+      revision: string;
+      contentHash: string;
+      sha256: string;
+    };
   };
 }
 
@@ -204,7 +211,33 @@ function optionalStorage(value: unknown): MapIntakeDocument["storage"] {
   }
   return {
     originalUrl: optionalString(value, "originalUrl"),
-    sha256: optionalString(value, "sha256")
+    sha256: optionalString(value, "sha256"),
+    reviewCopy: optionalDropboxReviewCopy(value.reviewCopy)
+  };
+}
+
+function optionalDropboxReviewCopy(
+  value: unknown
+): NonNullable<MapIntakeDocument["storage"]>["reviewCopy"] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isRecord(value)) {
+    throw new Error("storage.reviewCopy must be an object when supplied.");
+  }
+  if (requiredString(value, "provider") !== "dropbox") {
+    throw new Error("storage.reviewCopy.provider must be dropbox.");
+  }
+  const checksum = requiredString(value, "sha256");
+  if (!/^[a-f0-9]{64}$/i.test(checksum)) {
+    throw new Error("storage.reviewCopy.sha256 must be a SHA-256 hexadecimal digest.");
+  }
+  return {
+    provider: "dropbox",
+    fileId: requiredString(value, "fileId"),
+    revision: requiredString(value, "revision"),
+    contentHash: requiredString(value, "contentHash"),
+    sha256: checksum.toLowerCase()
   };
 }
 

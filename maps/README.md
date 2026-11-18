@@ -22,3 +22,8 @@ The repository's MIT license applies to original project code and documentation,
 not to historical map images, GIS data, or other third-party materials in this
 directory. Each intake record's source and rights metadata controls its use and
 redistribution.
+
+Dropbox can stage the same two-file review bundle into a pull request. It is a
+manual, read-only Dropbox import and does not change the rule above: raw scans
+and restricted material stay outside ordinary Git. See
+[`docs/dropbox-intake.md`](../docs/dropbox-intake.md).

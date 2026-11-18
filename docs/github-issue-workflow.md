@@ -19,6 +19,15 @@ maps/inbox/<map-id>/
 
 map.json is intentionally small, structured metadata. It should point to the durable original scan if that scan does not belong in Git. A review copy is appropriate only when all authorized repository collaborators may access it.
 
+### Dropbox review-PR route
+
+The manual Dropbox workflow accepts the same two-file contract from an App
+Folder, validates it, and opens a review PR. It does not push to the default
+branch and has no Issue permission. The existing map-intake Action sees the
+new `map.json` only after a human merge, so the normal deduplication marker and
+Issue contract remain unchanged. The original scan stays in Dropbox. See
+[`docs/dropbox-intake.md`](dropbox-intake.md).
+
 The map-intake Action only reacts to map.json paths on the default branch. It does not open or parse raster files, so an uploaded map cannot cause the workflow to execute untrusted map content.
 
 ## Issue contract

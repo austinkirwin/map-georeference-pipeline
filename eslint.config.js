@@ -23,6 +23,8 @@ export default tseslint.config(
     languageOptions: {
       globals: {
         URL: "readonly",
+        URLSearchParams: "readonly",
+        fetch: "readonly",
         console: "readonly",
         process: "readonly"
       }

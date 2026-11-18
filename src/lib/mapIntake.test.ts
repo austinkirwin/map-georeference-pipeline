@@ -74,6 +74,31 @@ describe("GitHub map intake helpers", () => {
     expect(project.modernMapView).toEqual({ longitude: -88.25, latitude: 40.1, zoom: 14 });
   });
 
+  it("retains Dropbox review-copy provenance without treating it as the original source", () => {
+    const parsed = parseMapIntake({
+      ...intake,
+      storage: {
+        originalUrl: "https://archive.example.org/original",
+        reviewCopy: {
+          provider: "dropbox",
+          fileId: "id:abc123",
+          revision: "015f123",
+          contentHash: "dropbox-content-hash",
+          sha256: "A".repeat(64)
+        }
+      }
+    });
+
+    expect(parsed.storage?.originalUrl).toBe("https://archive.example.org/original");
+    expect(parsed.storage?.reviewCopy).toEqual({
+      provider: "dropbox",
+      fileId: "id:abc123",
+      revision: "015f123",
+      contentHash: "dropbox-content-hash",
+      sha256: "a".repeat(64)
+    });
+  });
+
   it("builds a browser-only project for a private local review copy", () => {
     const project = projectFromLocalReview({
       id: "local-1970-zoning-map",
