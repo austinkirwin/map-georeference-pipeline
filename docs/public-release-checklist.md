@@ -69,7 +69,7 @@ research decisions.
 
 ## Known current blocker
 
-The Kentwood 1970 review image is marked as rights unknown and testing-only.
-It must not be promoted to `maps/public-review/`; it must be rights-cleared,
+The Kentwood 1970 review image has no confirmed redistribution declaration. It
+must not be promoted to `maps/public-review/`; it must be rights-cleared,
 replaced, or removed from all reachable Git history before this repository is
 made public.

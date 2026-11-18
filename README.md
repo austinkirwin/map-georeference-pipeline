@@ -159,8 +159,9 @@ authoritative zoning determination.
 
 Making the repository public exposes its complete Git history, Issues, Actions
 logs, and every review image in `maps/inbox/`—even though Render copies only
-`maps/public-review/`. The current Kentwood fixture is explicitly marked as
-rights-unknown and must be cleared, replaced, or removed before a public launch.
+`maps/public-review/`. The current Kentwood fixture has no confirmed
+redistribution declaration and must be cleared, replaced, or removed before a
+public launch.
 Follow [`docs/public-release-checklist.md`](docs/public-release-checklist.md)
 before changing visibility. A revert cannot make material that has already been
 copied or cached private again.
