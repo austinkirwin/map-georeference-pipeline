@@ -39,6 +39,6 @@ jobs:
               body:
                 "Thank you. This Issue is the map review record. " +
                 "Add a repository intake folder under maps/inbox/<map-id>/ only for a small, authorized review copy, " +
-                "or attach an authorized small review image here for a collaborator to open locally in the private Codespaces picker. " +
+                "or select an authorized small review image locally in the Render workspace; the browser-local file is not uploaded or committed. " +
                 "Do not upload restricted or large archival scans directly to the Issue."
             });

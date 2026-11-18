@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Create one Issue for each new map manifest
         uses: actions/github-script@v7
+        env:
+          RENDER_REVIEW_URL: ${{ vars.RENDER_REVIEW_URL }}
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -35,6 +37,36 @@ jobs:
             }
 
             for (const label of labels) await ensureLabel(label);
+
+            function parseRenderReviewBaseUrl() {
+              const value = (process.env.RENDER_REVIEW_URL || "").trim();
+              if (!value) return undefined;
+              try {
+                const url = new URL(value);
+                if (url.protocol !== "https:" || url.username || url.password) {
+                  throw new Error("URL must use HTTPS without embedded credentials");
+                }
+                return url;
+              } catch (error) {
+                core.warning(
+                  "RENDER_REVIEW_URL is not a safe HTTPS URL; generated Issues will omit the Render link (" +
+                    (error instanceof Error ? error.message : "unknown error") +
+                    ")."
+                );
+                return undefined;
+              }
+            }
+
+            const renderReviewBaseUrl = parseRenderReviewBaseUrl();
+
+            function renderReviewUrl(mapId, issueNumber) {
+              if (!renderReviewBaseUrl) return undefined;
+              const url = new URL(renderReviewBaseUrl);
+              url.hash = "";
+              url.searchParams.set("map", mapId);
+              url.searchParams.set("issue", issueNumber);
+              return url.toString();
+            }
 
             let changedFiles = [];
             const before = context.payload.before;
@@ -81,15 +113,8 @@ jobs:
 
               const rootUrl = "https://github.com/" + owner + "/" + repo;
               const manifestUrl = rootUrl + "/blob/" + context.sha + "/" + manifestPath;
-              const codespaceUrl =
-                "https://codespaces.new/" +
-                owner +
-                "/" +
-                repo +
-                "/tree/" +
-                encodeURIComponent(context.payload.repository.default_branch) +
-                "?quickstart=1";
               const issueNumberToken = "__ISSUE_NUMBER__";
+              const reviewWorkspaceUrl = renderReviewUrl(mapId, issueNumberToken);
               const body = [
                 marker,
                 "# Map intake: " + mapId,
@@ -100,8 +125,10 @@ jobs:
                 "- [Map intake manifest](" + manifestUrl + ")",
                 "",
                 "## Landmark selection",
-                "1. [Open or resume a private Codespace](" + codespaceUrl + ").",
-                "2. The dev container starts the landmark picker on port 5173. In its Private review workspace, enter map ID `" + mapId + "` and Issue #" + issueNumberToken + ".",
+                reviewWorkspaceUrl
+                  ? "1. [Open the Render review workspace](" + reviewWorkspaceUrl + ")."
+                  : "1. A maintainer must configure the HTTPS `RENDER_REVIEW_URL` repository variable before the Render workspace link can be added to new Issues.",
+                "2. A map opens automatically only if its rights-cleared review copy was explicitly published under `maps/public-review/" + mapId + "/`. Otherwise download an authorized image from the Issue or Dropbox and choose **Open local review copy**; it stays in the browser session.",
                 "3. Pair durable historic and modern landmarks.",
                 "4. Copy the issue-ready landmark record from the picker and paste it in a comment below.",
                 "",
@@ -126,7 +153,7 @@ jobs:
                 owner,
                 repo,
                 issue_number: issue.data.number,
-                body: body.replace(issueNumberToken, String(issue.data.number))
+                body: body.split(issueNumberToken).join(String(issue.data.number))
               });
               core.notice("Created Issue #" + issue.data.number + " for " + mapId + ".");
             }

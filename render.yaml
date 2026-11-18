@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: map-georeference-picker
+    runtime: static
+    # The public-release gate runs before the build so uncleared review copies
+    # cannot be deployed accidentally.
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm run public:check && pnpm run check
+    staticPublishPath: dist
+    # Production releases are deliberately manual. Enable automatic deployment
+    # only after the public-data review process and branch protection are ready.
+    autoDeployTrigger: "off"
+    # Preview builds require a deliberate operator action; contributor PRs do
+    # not create an automatic public preview URL.
+    previews:
+      generation: manual
+    # The app currently uses query parameters, but this keeps direct SPA links
+    # working if route-based navigation is added later.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

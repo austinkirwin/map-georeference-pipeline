@@ -10,7 +10,7 @@ body:
 
         To create a map-backed Issue automatically, add maps/inbox/<map-id>/map.json and a small review image to the default branch.
 
-        This workflow is designed for a private repository. Attach a small review image or PDF only when it may be shared with authorized repository collaborators. Do not upload restricted sources, credentials, or sensitive locations.
+        Attach a small review image or PDF only when it may be shared with everyone allowed to view this Issue. Do not upload restricted sources, credentials, or sensitive locations. A reviewer can instead download an authorized file and open it locally in the Render workspace; that browser-local copy is not uploaded.
   - type: input
     id: map-id
     attributes:
@@ -44,8 +44,8 @@ body:
   - type: input
     id: map-file
     attributes:
-      label: Private source or storage location
-      description: Paste a durable source location available to authorized collaborators. You may attach a small authorized review image or PDF to this private Issue; large scans belong in approved storage.
+      label: Source or storage location
+      description: Paste a durable source location available to the intended reviewers. You may attach a small authorized review image or PDF only when it may be shared with everyone able to view this Issue; large scans belong in approved storage.
     validations:
       required: true
   - type: textarea

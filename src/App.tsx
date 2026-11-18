@@ -87,9 +87,9 @@ export default function App() {
         }
         setMapLoadState("error");
         setNotice(
-          "The requested map intake record could not be loaded. Check that maps/inbox/" +
+          "The requested published review copy could not be loaded. Check that maps/public-review/" +
             mapId +
-            "/map.json exists in this Codespace."
+            "/map.json has been approved for public deployment, or open a local review copy instead."
         );
       });
 
@@ -401,9 +401,9 @@ export default function App() {
               {activeIssueNumber ? " · Issue #" + activeIssueNumber : ""}
             </p>
             <p className="panel-note">
-              Pick landmarks here, then copy the record into the GitHub Issue. This private
-              Codespaces picker never stores a GitHub token or posts on your behalf. Maps use
-              side-by-side review first; an overlay requires a reviewed server-side warp.
+              Pick landmarks here, then copy the record into the GitHub Issue. This browser
+              workspace never stores a GitHub token or posts on your behalf. Maps use side-by-side
+              review first; an overlay requires a reviewed server-side warp.
             </p>
           </div>
           <div className="issue-context-actions">

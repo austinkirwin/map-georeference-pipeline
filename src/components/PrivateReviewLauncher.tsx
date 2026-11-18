@@ -50,23 +50,27 @@ export function PrivateReviewLauncher({
   }
 
   return (
-    <section className="private-review-launcher panel" aria-label="Open a private map review">
+    <section className="private-review-launcher panel" aria-label="Open a map review">
       <div className="panel-heading">
         <div>
-          <p className="eyebrow">Private review workspace</p>
+          <p className="eyebrow">Review workspace</p>
           <h2>Open the map linked to your Issue</h2>
         </div>
-        <span className="source-badge">Codespaces</span>
+        <span className="source-badge">Render</span>
       </div>
       <p className="panel-note">
-        This picker runs in your Codespace. It does not receive a GitHub token or write to an Issue
-        automatically.
+        This browser workspace receives no GitHub or Dropbox credentials and never writes to an
+        Issue automatically.
       </p>
 
       <div className="private-review-options">
         <form className="private-review-form" onSubmit={handleRepositorySubmit}>
-          <h3>Repository review copy</h3>
-          <p>Use this when the Issue references a small approved review copy in maps/inbox.</p>
+          <h3>Published review copy</h3>
+          <p>
+            Use this only when a human has approved a rights-cleared review copy for
+            <code> maps/public-review</code>. Intake copies and Dropbox originals are not hosted
+            here.
+          </p>
           <label className="field-label" htmlFor="map-id">
             Map ID
           </label>
@@ -89,15 +93,15 @@ export function PrivateReviewLauncher({
             value={issueNumber}
           />
           <button className="primary-button" type="submit">
-            Open repository copy
+            Open published copy
           </button>
         </form>
 
         <form className="private-review-form" onSubmit={handleLocalSubmit}>
-          <h3>Issue attachment or local review copy</h3>
+          <h3>Private Issue attachment or local review copy</h3>
           <p>
-            Download an authorized image from the private Issue, then select it here. It stays in
-            this browser session and is not uploaded or committed.
+            Download an authorized image from the Issue or Dropbox, then select it here. It stays in
+            this browser session and is not uploaded, sent to Render, or committed.
           </p>
           <label className="field-label" htmlFor="local-review-image">
             Review image

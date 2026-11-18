@@ -1,14 +1,25 @@
 # Architecture
 
-## GitHub-centered baseline
+## GitHub control plane and Render review interface
 
-GitHub is the intake and review control plane:
+GitHub is the intake and review control plane; Render hosts the public static
+review interface for material that has been explicitly approved for public
+redistribution:
 
 1. A map record enters under maps/inbox.
 2. A GitHub Action creates a map-specific Issue.
-3. The Issue links to a private Codespaces picker and preserves review discussion.
-4. A reviewer pastes a structured landmark record into the Issue.
-5. A reviewed manifest becomes the input to future geoprocessing.
+3. A human may promote a rights-cleared derivative into maps/public-review.
+4. Render deploys only that explicit public-review tier.
+5. A reviewer uses the Render picker for a public map, or a local browser
+   session for authorized restricted material, then pastes a structured
+   landmark record into the Issue.
+6. A reviewed manifest becomes the input to future geoprocessing.
+
+`maps/inbox` is intake and review staging, not a deployment source. A map
+must not become reachable from the public interface merely because it was
+submitted, imported from Dropbox, or discussed in an Issue. The
+`maps/public-review` tier contains only the small, rights-cleared derivative,
+its public manifest, and nothing that grants access to an original scan.
 
 An optional Dropbox ingress stages a review PR before step 1. It has read-only
 Dropbox access and cannot create Issues or merge its own result. This keeps
@@ -31,16 +42,17 @@ The demo uses a fictional scan and fictional evidence. It is an interface and da
 
 ```text
 GitHub control plane
- ├── maps/inbox          versioned map intake metadata and small review copies
+ ├── maps/inbox          intake metadata and review staging
+ ├── maps/public-review  explicitly approved public map derivatives and manifests
  ├── Dropbox intake       manual App-Folder download, validation, and review PR
  ├── Issue Form          manual intake for externally hosted maps
  ├── map-intake Action   one Issue per map.json file
  └── GitHub Issue        provenance, review checklist, and landmark record
 
-React private Codespaces picker
+Render static review interface
  ├── HistoricMapPane       unwarped raster and pixel-space GCPs
  ├── ModernMapPane         MapLibre map, reference layers, geographic GCPs
- ├── PrivateReviewLauncher repository-map or browser-only local-image entry
+ ├── Review launcher       public-review map or browser-only local-image entry
  ├── georeference.ts       deterministic affine fit and residual calculations
  ├── QA panels             coverage, RMSE, warnings, review state
  └── exported record       portable manifest or Issue-ready landmark table
@@ -52,10 +64,11 @@ Future service boundary
  └── PostGIS               temporal geometry, citations, queryable evidence
 ```
 
-The dev container starts the picker on port 5173. A reviewer can select an
-authorized image downloaded from a private Issue without committing it; that
-browser-only option is an intake aid, not a substitute for source metadata or
-reviewer approval.
+For local development, the picker runs on port 5173. A reviewer can select an
+authorized image from a private Issue or another approved source without
+uploading or committing it; that browser-only option is an intake aid, not a
+substitute for source metadata or reviewer approval. Render must never receive
+or host that restricted image.
 
 ## Why side-by-side comes first
 

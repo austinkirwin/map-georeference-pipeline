@@ -5,20 +5,20 @@ import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
 const projectRoot = resolve(".");
-const mapInboxDirectory = resolve(projectRoot, "maps", "inbox");
-const mapInboxPrefix = "/maps/inbox/";
+const publicMapReviewDirectory = resolve(projectRoot, "maps", "public-review");
+const publicMapReviewPrefix = "/maps/public-review/";
 
 export default defineConfig({
-  plugins: [mapInboxAssets(), react()],
+  plugins: [publicMapReviewAssets(), react()],
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "scripts/**/*.test.mjs"]
   }
 });
 
-function mapInboxAssets(): Plugin {
+function publicMapReviewAssets(): Plugin {
   return {
-    name: "private-map-inbox-assets",
+    name: "public-map-review-assets",
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
         const requestUrl = (request as unknown as { url?: string }).url ?? "/";
@@ -26,17 +26,19 @@ function mapInboxAssets(): Plugin {
           0,
           requestUrl.indexOf("?") === -1 ? undefined : requestUrl.indexOf("?")
         );
-        if (!pathname.startsWith(mapInboxPrefix)) {
+        if (!pathname.startsWith(publicMapReviewPrefix)) {
           next();
           return;
         }
 
         let filePath: string;
         try {
-          filePath = resolveMapInboxPath(decodeURIComponent(pathname.slice(mapInboxPrefix.length)));
+          filePath = resolvePublicMapReviewPath(
+            decodeURIComponent(pathname.slice(publicMapReviewPrefix.length))
+          );
         } catch {
           response.statusCode = 400;
-          response.end("Invalid map-inbox asset path.");
+          response.end("Invalid public map-review asset path.");
           return;
         }
 
@@ -60,7 +62,7 @@ function mapInboxAssets(): Plugin {
       const outputDirectory = outputOptions.dir
         ? resolve(outputOptions.dir)
         : resolve(projectRoot, "dist");
-      cpSync(mapInboxDirectory, resolve(outputDirectory, "maps", "inbox"), {
+      cpSync(publicMapReviewDirectory, resolve(outputDirectory, "maps", "public-review"), {
         force: true,
         recursive: true
       });
@@ -68,11 +70,11 @@ function mapInboxAssets(): Plugin {
   };
 }
 
-function resolveMapInboxPath(relativePath: string): string {
-  const filePath = resolve(mapInboxDirectory, relativePath);
-  const pathFromInbox = relative(mapInboxDirectory, filePath);
-  if (!relativePath || pathFromInbox.startsWith("..") || isAbsolute(pathFromInbox)) {
-    throw new Error("Map-inbox path escapes its root.");
+function resolvePublicMapReviewPath(relativePath: string): string {
+  const filePath = resolve(publicMapReviewDirectory, relativePath);
+  const pathFromPublicReview = relative(publicMapReviewDirectory, filePath);
+  if (!relativePath || pathFromPublicReview.startsWith("..") || isAbsolute(pathFromPublicReview)) {
+    throw new Error("Public map-review path escapes its root.");
   }
   return filePath;
 }

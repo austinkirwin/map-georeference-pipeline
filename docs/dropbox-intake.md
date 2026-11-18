@@ -15,11 +15,17 @@ validate + stage a review PR
 human source/rights review and merge
         |
 existing map-intake Action creates the canonical Issue
+        |
+separate human promotion of a public derivative, if authorized
+        |
+Render static review interface
 ```
 
 The original source scan remains in Dropbox or another approved archive. The
 existing map-intake workflow runs only after a human merges the PR to the
-default branch.
+default branch. Dropbox validation and merge do not publish a map to Render.
+Only a separate human decision may place a rights-cleared derivative under
+`maps/public-review/` for public deployment.
 
 ## Bundle contract
 
@@ -95,8 +101,8 @@ DROPBOX_INGEST_ROOT=/intake
 ```
 
 The values are used only by `.github/workflows/dropbox-map-intake.yml`; they
-are never copied into Pages, the browser picker, map manifests, Issues, or
-workflow summaries.
+are never copied into Render, browser code, map manifests, Issues, or workflow
+summaries.
 
 ## Run an import
 
@@ -118,10 +124,11 @@ anything, and has no Dropbox write scope.
 
 ## Why this is manual first
 
-Dropbox webhooks need a public, signature-validating receiver. GitHub Actions
-and GitHub Pages are not that receiver. A future automatic design should use a
-small authenticated broker (for example, a worker or GitHub App) that verifies
-the Dropbox request, records a cursor, and triggers a repository dispatch.
+Dropbox webhooks need a public, signature-validating receiver. The Render
+static site is not a receiver and must not be used for this purpose. A future
+automatic design could use a separate Render web service, worker, or GitHub
+App that verifies the Dropbox request, records a cursor, and triggers a
+repository dispatch. Keep that broker separate from the public static site.
 
 Keep that broker separate from the model-review and Issue-writing paths. Do
 not add Dropbox write/delete scope until a human-reviewed, post-merge

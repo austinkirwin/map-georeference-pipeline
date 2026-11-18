@@ -3,6 +3,7 @@ import type { GeoreferenceProject, ModernMapView, SourceCitation } from "../doma
 
 const mapIdPattern = /^[a-z0-9][a-z0-9-]{1,80}$/;
 const fileNamePattern = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
+const publicMapReviewPath = "maps/public-review/";
 
 export interface MapIntakeDocument {
   schemaVersion: "0.1";
@@ -51,7 +52,7 @@ export function isValidMapId(value: string): boolean {
 
 export function mapManifestUrl(mapId: string, baseUrl = import.meta.env.BASE_URL): string {
   assertValidMapId(mapId);
-  return joinBaseUrl(baseUrl, "maps/inbox/" + encodeURIComponent(mapId) + "/map.json");
+  return joinBaseUrl(baseUrl, publicMapReviewPath + encodeURIComponent(mapId) + "/map.json");
 }
 
 export function mapReviewImageUrl(
@@ -65,7 +66,7 @@ export function mapReviewImageUrl(
   }
   return joinBaseUrl(
     baseUrl,
-    "maps/inbox/" + encodeURIComponent(mapId) + "/" + encodeURIComponent(reviewImage)
+    publicMapReviewPath + encodeURIComponent(mapId) + "/" + encodeURIComponent(reviewImage)
   );
 }
 
