@@ -15,8 +15,6 @@ legal, surveying, or authoritative zoning-determination system.
 
 ## Evidence and georeferencing
 
-- Retain source citation, rights, access date, checksum, CRS, transform method,
-  fit/check-point role, residuals, and reviewer status with map records.
 - Keep fit points separate from independent check points. Do not hide poor
   coverage, residuals, or other uncertainty to make an overlay look stronger.
 - Use the `maps/inbox/`, `maps/manifests/`, and `maps/processed/` contracts
