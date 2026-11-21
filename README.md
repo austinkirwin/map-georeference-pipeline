@@ -57,6 +57,15 @@ three well-distributed, non-collinear fit points across the sheet.
 Their residuals test how well the transform predicts landmarks it did not use,
 so the same landmark must not serve as both a fit point and a check point.
 
+### Historic-map interaction
+
+Use the historic-scan sidebar to select **Place points** before clicking a
+landmark. Select **Move around** to scroll-zoom around the cursor and
+click-drag the historic scan without creating a point. The zoom only changes
+the view; stored historic coordinates remain in the map's native pixel space.
+Keyboard users can focus the scan in **Move around** mode and pan with the
+arrow keys; hold Shift for a larger move.
+
 ## GitHub Pages deployment
 
 [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)

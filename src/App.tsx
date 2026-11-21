@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ControlPointTable } from "./components/ControlPointTable";
-import { HistoricMapPane } from "./components/HistoricMapPane";
+import { HistoricMapPane, type HistoricMapInteractionMode } from "./components/HistoricMapPane";
 import { ModernMapPane } from "./components/ModernMapPane";
 import { PrivateReviewLauncher } from "./components/PrivateReviewLauncher";
 import { QaPanel } from "./components/QaPanel";
@@ -46,6 +46,8 @@ export default function App() {
   const [hydratedProjectId, setHydratedProjectId] = useState(demoProject.id);
   const [pendingHistoricPoint, setPendingHistoricPoint] = useState<HistoricPixel>();
   const [nextPointRole, setNextPointRole] = useState<ControlPointRole>("fit");
+  const [historicInteractionMode, setHistoricInteractionMode] =
+    useState<HistoricMapInteractionMode>("place");
   const [overlayOpacity, setOverlayOpacity] = useState(0.58);
   const [notice, setNotice] = useState(
     "Choose a durable landmark on the historical scan to begin a paired control point."
@@ -144,6 +146,15 @@ export default function App() {
         ", " +
         point.y.toLocaleString() +
         " is ready. Now click its modern counterpart."
+    );
+  }
+
+  function setHistoricMapInteractionMode(nextMode: HistoricMapInteractionMode) {
+    setHistoricInteractionMode(nextMode);
+    setNotice(
+      nextMode === "place"
+        ? "Historic map point placement is enabled. Scroll to zoom, then click a landmark."
+        : "Historic map navigation is enabled. Scroll to zoom, then drag or use the arrow keys to move around the scan."
     );
   }
 
@@ -330,6 +341,46 @@ export default function App() {
         </div>
       </section>
 
+      <section className="panel historic-interaction-panel">
+        <div className="panel-heading">
+          <div>
+            <p className="eyebrow">Historic scan</p>
+            <h2>Interaction mode</h2>
+          </div>
+        </div>
+        <div className="historic-interaction-toggle" role="group" aria-label="Historic map mode">
+          <button
+            aria-pressed={historicInteractionMode === "place"}
+            className={
+              historicInteractionMode === "place"
+                ? "historic-interaction-button active"
+                : "historic-interaction-button"
+            }
+            onClick={() => setHistoricMapInteractionMode("place")}
+            type="button"
+          >
+            Place points
+          </button>
+          <button
+            aria-pressed={historicInteractionMode === "navigate"}
+            className={
+              historicInteractionMode === "navigate"
+                ? "historic-interaction-button active"
+                : "historic-interaction-button"
+            }
+            onClick={() => setHistoricMapInteractionMode("navigate")}
+            type="button"
+          >
+            Move around
+          </button>
+        </div>
+        <p className="panel-note">
+          {historicInteractionMode === "place"
+            ? "Scroll to zoom. Click the scan only when you are ready to place the historic half of a point pair."
+            : "Scroll to zoom around the cursor, then click-drag or use the arrow keys to pan without adding a point. Hold Shift with an arrow key for a larger move."}
+        </p>
+      </section>
+
       <section className="panel layers-panel">
         <div className="panel-heading">
           <div>
@@ -433,6 +484,7 @@ export default function App() {
         <section className="workbench" aria-label="Side-by-side georeferencing editor">
           <HistoricMapPane
             controlPoints={controlPoints}
+            interactionMode={historicInteractionMode}
             map={activeProject.historicMap}
             onPick={handleHistoricPick}
             pendingPoint={pendingHistoricPoint}

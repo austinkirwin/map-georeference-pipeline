@@ -248,6 +248,24 @@ h2 {
   touch-action: pan-x pan-y;
 }
 
+.historic-map-stage.navigate {
+  cursor: grab;
+  touch-action: none;
+}
+
+.historic-map-stage.navigate.is-panning {
+  cursor: grabbing;
+}
+
+.historic-map-stage.navigate .historic-map-canvas img {
+  cursor: inherit;
+}
+
+.historic-map-stage:focus-visible {
+  outline: 3px solid #d49a45;
+  outline-offset: 2px;
+}
+
 .historic-map-canvas {
   position: relative;
   min-width: 100%;
@@ -543,6 +561,30 @@ input[type="range"] {
 
 .point-role-explainer p {
   margin: 0;
+}
+
+.historic-interaction-toggle {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.historic-interaction-button {
+  min-height: 2.3rem;
+  border: 1px solid #b6c5c0;
+  border-radius: 0.35rem;
+  background: #f8fbf9;
+  color: #315b57;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.historic-interaction-button.active {
+  border-color: #0d6e68;
+  background: #0d6e68;
+  color: #fff;
 }
 
 .layer-list,
