@@ -20,6 +20,7 @@ interface HistoricMapPaneProps {
   map: HistoricMap;
   controlPoints: GroundControlPoint[];
   interactionMode: HistoricMapInteractionMode;
+  onInteractionModeChange: (mode: HistoricMapInteractionMode) => void;
   pendingPoint?: HistoricPixel;
   onPick: (point: HistoricPixel) => void;
 }
@@ -50,6 +51,7 @@ export function HistoricMapPane({
   map,
   controlPoints,
   interactionMode,
+  onInteractionModeChange,
   pendingPoint,
   onPick
 }: HistoricMapPaneProps) {
@@ -316,41 +318,72 @@ export function HistoricMapPane({
           ? "Place-points mode: scroll to zoom, then click a durable landmark and choose its counterpart on the modern map."
           : "Move-around mode: scroll to zoom around the cursor and click-drag or use the arrow keys to pan. Switch back to Place points before selecting a landmark."}
       </p>
-      <div className="historic-map-controls" role="group" aria-label="Historic map zoom controls">
-        <span className="historic-zoom-label">Zoom</span>
-        <button
-          aria-label="Zoom out of historic map"
-          className="historic-zoom-button"
-          disabled={zoom <= minimumHistoricZoom}
-          onClick={() => setHistoricZoom(zoom - historicZoomStep)}
-          type="button"
-        >
-          −
-        </button>
-        <input
-          aria-label="Historic map zoom"
-          max={maximumHistoricZoom}
-          min={minimumHistoricZoom}
-          onChange={handleZoomChange}
-          step={historicZoomStep}
-          type="range"
-          value={zoom}
-        />
-        <output aria-live="polite" className="historic-zoom-value">
-          {zoomPercent}%
-        </output>
-        <button
-          aria-label="Zoom in on historic map"
-          className="historic-zoom-button"
-          disabled={zoom >= maximumHistoricZoom}
-          onClick={() => setHistoricZoom(zoom + historicZoomStep)}
-          type="button"
-        >
-          +
-        </button>
-        <button className="historic-reset-button" onClick={resetHistoricView} type="button">
-          Reset
-        </button>
+      <div className="historic-map-toolbar">
+        <div className="historic-map-mode-control">
+          <span className="historic-toolbar-label">Mode</span>
+          <div className="historic-interaction-toggle" role="group" aria-label="Historic map mode">
+            <button
+              aria-pressed={interactionMode === "place"}
+              className={
+                interactionMode === "place"
+                  ? "historic-interaction-button active"
+                  : "historic-interaction-button"
+              }
+              onClick={() => onInteractionModeChange("place")}
+              type="button"
+            >
+              Place points
+            </button>
+            <button
+              aria-pressed={interactionMode === "navigate"}
+              className={
+                interactionMode === "navigate"
+                  ? "historic-interaction-button active"
+                  : "historic-interaction-button"
+              }
+              onClick={() => onInteractionModeChange("navigate")}
+              type="button"
+            >
+              Move around
+            </button>
+          </div>
+        </div>
+        <div className="historic-map-controls" role="group" aria-label="Historic map zoom controls">
+          <span className="historic-zoom-label">Zoom</span>
+          <button
+            aria-label="Zoom out of historic map"
+            className="historic-zoom-button"
+            disabled={zoom <= minimumHistoricZoom}
+            onClick={() => setHistoricZoom(zoom - historicZoomStep)}
+            type="button"
+          >
+            −
+          </button>
+          <input
+            aria-label="Historic map zoom"
+            max={maximumHistoricZoom}
+            min={minimumHistoricZoom}
+            onChange={handleZoomChange}
+            step={historicZoomStep}
+            type="range"
+            value={zoom}
+          />
+          <output aria-live="polite" className="historic-zoom-value">
+            {zoomPercent}%
+          </output>
+          <button
+            aria-label="Zoom in on historic map"
+            className="historic-zoom-button"
+            disabled={zoom >= maximumHistoricZoom}
+            onClick={() => setHistoricZoom(zoom + historicZoomStep)}
+            type="button"
+          >
+            +
+          </button>
+          <button className="historic-reset-button" onClick={resetHistoricView} type="button">
+            Reset
+          </button>
+        </div>
       </div>
       <div
         aria-label={

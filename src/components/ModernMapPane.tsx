@@ -11,6 +11,7 @@ interface ModernMapPaneProps {
   overlayOpacity: number;
   historicImageUrl: string;
   overlayCorners: [[number, number], [number, number], [number, number], [number, number]];
+  viewportAspectRatio: number;
   initialView?: ModernMapView;
 }
 
@@ -26,6 +27,7 @@ export function ModernMapPane({
   overlayOpacity,
   historicImageUrl,
   overlayCorners,
+  viewportAspectRatio,
   initialView
 }: ModernMapPaneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -123,6 +125,33 @@ export function ModernMapPane({
     overlayCorners
   ]);
 
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) {
+      return undefined;
+    }
+
+    let animationFrame: number | undefined;
+    const queueResize = () => {
+      if (animationFrame !== undefined) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+      animationFrame = window.requestAnimationFrame(() => {
+        mapRef.current?.resize();
+      });
+    };
+    const observer = new ResizeObserver(queueResize);
+    observer.observe(container);
+    queueResize();
+
+    return () => {
+      observer.disconnect();
+      if (animationFrame !== undefined) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+    };
+  }, []);
+
   return (
     <section className="map-pane modern-pane" aria-label="Modern reference map">
       <div className="pane-heading">
@@ -141,7 +170,11 @@ export function ModernMapPane({
           {basemapMessage}
         </p>
       ) : null}
-      <div className="modern-map-stage" ref={containerRef} />
+      <div
+        className="modern-map-stage"
+        ref={containerRef}
+        style={{ aspectRatio: viewportAspectRatio }}
+      />
       <div className="pane-footer">
         <span>Green = fit point (builds transform)</span>
         <span>Orange = independent check (validates transform)</span>

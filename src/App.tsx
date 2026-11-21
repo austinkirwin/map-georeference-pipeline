@@ -130,6 +130,8 @@ export default function App() {
   );
   const canReviewOverlay = analysis.transform !== undefined && activeOverlayCorners !== undefined;
   const isDemoProject = activeProject.id === demoProject.id;
+  const historicViewportAspectRatio =
+    activeProject.historicMap.widthPx / activeProject.historicMap.heightPx;
 
   useEffect(() => {
     if (hydratedProjectId === activeProject.id && !localReviewActive) {
@@ -341,46 +343,6 @@ export default function App() {
         </div>
       </section>
 
-      <section className="panel historic-interaction-panel">
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow">Historic scan</p>
-            <h2>Interaction mode</h2>
-          </div>
-        </div>
-        <div className="historic-interaction-toggle" role="group" aria-label="Historic map mode">
-          <button
-            aria-pressed={historicInteractionMode === "place"}
-            className={
-              historicInteractionMode === "place"
-                ? "historic-interaction-button active"
-                : "historic-interaction-button"
-            }
-            onClick={() => setHistoricMapInteractionMode("place")}
-            type="button"
-          >
-            Place points
-          </button>
-          <button
-            aria-pressed={historicInteractionMode === "navigate"}
-            className={
-              historicInteractionMode === "navigate"
-                ? "historic-interaction-button active"
-                : "historic-interaction-button"
-            }
-            onClick={() => setHistoricMapInteractionMode("navigate")}
-            type="button"
-          >
-            Move around
-          </button>
-        </div>
-        <p className="panel-note">
-          {historicInteractionMode === "place"
-            ? "Scroll to zoom. Click the scan only when you are ready to place the historic half of a point pair."
-            : "Scroll to zoom around the cursor, then click-drag or use the arrow keys to pan without adding a point. Hold Shift with an arrow key for a larger move."}
-        </p>
-      </section>
-
       <section className="panel layers-panel">
         <div className="panel-heading">
           <div>
@@ -482,22 +444,26 @@ export default function App() {
 
       {mode === "edit" ? (
         <section className="workbench" aria-label="Side-by-side georeferencing editor">
-          <HistoricMapPane
-            controlPoints={controlPoints}
-            interactionMode={historicInteractionMode}
-            map={activeProject.historicMap}
-            onPick={handleHistoricPick}
-            pendingPoint={pendingHistoricPoint}
-          />
-          <ModernMapPane
-            controlPoints={controlPoints}
-            historicImageUrl={activeProject.historicMap.rawImageUrl}
-            initialView={activeProject.modernMapView}
-            onPick={handleModernPick}
-            overlayCorners={activeOverlayCorners ?? demoOverlayCorners}
-            overlayOpacity={overlayOpacity}
-            showOverlay={false}
-          />
+          <div className="map-pair">
+            <HistoricMapPane
+              controlPoints={controlPoints}
+              interactionMode={historicInteractionMode}
+              map={activeProject.historicMap}
+              onInteractionModeChange={setHistoricMapInteractionMode}
+              onPick={handleHistoricPick}
+              pendingPoint={pendingHistoricPoint}
+            />
+            <ModernMapPane
+              controlPoints={controlPoints}
+              historicImageUrl={activeProject.historicMap.rawImageUrl}
+              initialView={activeProject.modernMapView}
+              onPick={handleModernPick}
+              overlayCorners={activeOverlayCorners ?? demoOverlayCorners}
+              overlayOpacity={overlayOpacity}
+              showOverlay={false}
+              viewportAspectRatio={historicViewportAspectRatio}
+            />
+          </div>
           {workspaceSidebar}
         </section>
       ) : (
@@ -510,6 +476,7 @@ export default function App() {
             overlayCorners={activeOverlayCorners ?? demoOverlayCorners}
             overlayOpacity={overlayOpacity}
             showOverlay={activeOverlayCorners !== undefined}
+            viewportAspectRatio={historicViewportAspectRatio}
           />
           <aside className="review-sidebar">
             <section className="panel overlay-panel">

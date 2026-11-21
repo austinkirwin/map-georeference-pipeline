@@ -171,8 +171,16 @@ h2 {
 
 .workbench {
   display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr) minmax(18rem, 0.5fr);
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 20rem);
   gap: 1rem;
+  align-items: start;
+}
+
+.map-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  min-width: 0;
   align-items: start;
 }
 
@@ -279,12 +287,30 @@ h2 {
   user-select: none;
 }
 
+.historic-map-toolbar {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0 1rem 0.75rem;
+}
+
+.historic-map-mode-control {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.historic-toolbar-label {
+  color: #405c59;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
 .historic-map-controls {
   display: grid;
   grid-template-columns: auto auto minmax(4rem, 1fr) auto auto auto;
   align-items: center;
   gap: 0.4rem;
-  margin: 0 1rem 0.75rem;
   color: #405c59;
   font-size: 0.82rem;
   line-height: 1;
@@ -391,7 +417,7 @@ h2 {
 }
 
 .modern-map-stage {
-  height: 28.75rem;
+  min-height: 14rem;
   margin: 0 1rem;
   border: 1px solid #c4ceca;
   background: #d8e5e1;
@@ -568,6 +594,10 @@ input[type="range"] {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.45rem;
   margin-top: 0.75rem;
+}
+
+.historic-map-mode-control .historic-interaction-toggle {
+  margin-top: 0;
 }
 
 .historic-interaction-button {
@@ -868,11 +898,10 @@ td small {
 
 @media (max-width: 1220px) {
   .workbench {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .workspace-sidebar {
-    grid-column: 1 / -1;
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
@@ -911,18 +940,11 @@ td small {
   }
 
   .workbench,
+  .map-pair,
   .review-workbench,
   .lower-panels,
   .workspace-sidebar {
     grid-template-columns: 1fr;
-  }
-
-  .workspace-sidebar {
-    grid-column: auto;
-  }
-
-  .modern-map-stage {
-    height: 23rem;
   }
 
   .pane-footer {
