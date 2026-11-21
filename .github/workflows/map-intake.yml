@@ -18,7 +18,7 @@ jobs:
       - name: Create one Issue for each new map manifest
         uses: actions/github-script@v7
         env:
-          RENDER_REVIEW_URL: ${{ vars.RENDER_REVIEW_URL }}
+          PAGES_REVIEW_URL: ${{ vars.PAGES_REVIEW_URL }}
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -38,9 +38,19 @@ jobs:
 
             for (const label of labels) await ensureLabel(label);
 
-            function parseRenderReviewBaseUrl() {
-              const value = (process.env.RENDER_REVIEW_URL || "").trim();
-              if (!value) return undefined;
+            function defaultPagesReviewUrl() {
+              const pagesHost = owner.toLowerCase() + ".github.io";
+              const isUserOrOrganizationSite = repo.toLowerCase() === pagesHost;
+              return (
+                "https://" +
+                pagesHost +
+                (isUserOrOrganizationSite ? "/" : "/" + encodeURIComponent(repo) + "/")
+              );
+            }
+
+            function parsePagesReviewBaseUrl() {
+              const configuredValue = (process.env.PAGES_REVIEW_URL || "").trim();
+              const value = configuredValue || defaultPagesReviewUrl();
               try {
                 const url = new URL(value);
                 if (url.protocol !== "https:" || url.username || url.password) {
@@ -49,19 +59,18 @@ jobs:
                 return url;
               } catch (error) {
                 core.warning(
-                  "RENDER_REVIEW_URL is not a safe HTTPS URL; generated Issues will omit the Render link (" +
+                  "PAGES_REVIEW_URL is not a safe HTTPS URL; using the repository's default Pages URL instead (" +
                     (error instanceof Error ? error.message : "unknown error") +
                     ")."
                 );
-                return undefined;
+                return new URL(defaultPagesReviewUrl());
               }
             }
 
-            const renderReviewBaseUrl = parseRenderReviewBaseUrl();
+            const pagesReviewBaseUrl = parsePagesReviewBaseUrl();
 
-            function renderReviewUrl(mapId, issueNumber) {
-              if (!renderReviewBaseUrl) return undefined;
-              const url = new URL(renderReviewBaseUrl);
+            function pagesReviewUrl(mapId, issueNumber) {
+              const url = new URL(pagesReviewBaseUrl);
               url.hash = "";
               url.searchParams.set("map", mapId);
               url.searchParams.set("issue", issueNumber);
@@ -114,7 +123,7 @@ jobs:
               const rootUrl = "https://github.com/" + owner + "/" + repo;
               const manifestUrl = rootUrl + "/blob/" + context.sha + "/" + manifestPath;
               const issueNumberToken = "__ISSUE_NUMBER__";
-              const reviewWorkspaceUrl = renderReviewUrl(mapId, issueNumberToken);
+              const reviewWorkspaceUrl = pagesReviewUrl(mapId, issueNumberToken);
               const body = [
                 marker,
                 "# Map intake: " + mapId,
@@ -125,15 +134,14 @@ jobs:
                 "- [Map intake manifest](" + manifestUrl + ")",
                 "",
                 "## Landmark selection",
-                reviewWorkspaceUrl
-                  ? "1. [Open the Render review workspace](" + reviewWorkspaceUrl + ")."
-                  : "1. A maintainer must configure the HTTPS `RENDER_REVIEW_URL` repository variable before the Render workspace link can be added to new Issues.",
-                "2. A map opens automatically only if its rights-cleared review copy was explicitly published under `maps/public-review/" + mapId + "/`. Otherwise download an authorized image from the Issue or Dropbox and choose **Open local review copy**; it stays in the browser session.",
+                "1. [Open the GitHub Pages landmark picker](" + reviewWorkspaceUrl + ").",
+                "2. If the Pages site is still deploying, wait a few minutes and reload it. The picker opens `maps/inbox/" + mapId + "/` and Issue #" + issueNumberToken + ".",
                 "3. Pair durable historic and modern landmarks.",
                 "4. Copy the issue-ready landmark record from the picker and paste it in a comment below.",
                 "",
                 "## Review checklist",
-                "- [ ] Verify source, rights, and map date.",
+                "- [ ] Verify source information and map date.",
+                "- [ ] Confirm that the review copy may be served by GitHub Pages.",
                 "- [ ] Add fit points distributed across the sheet.",
                 "- [ ] Add independent check points.",
                 "- [ ] Review residuals and overlay alignment.",

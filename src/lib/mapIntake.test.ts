@@ -43,10 +43,10 @@ describe("GitHub map intake helpers", () => {
 
   it("creates root-relative map and image URLs", () => {
     expect(mapManifestUrl("riverton-1930-sheet-01", "/map-georeference-pipeline/")).toBe(
-      "/map-georeference-pipeline/maps/public-review/riverton-1930-sheet-01/map.json"
+      "/map-georeference-pipeline/maps/inbox/riverton-1930-sheet-01/map.json"
     );
     expect(mapReviewImageUrl("riverton-1930-sheet-01", "review-copy.jpg", "/")).toBe(
-      "/maps/public-review/riverton-1930-sheet-01/review-copy.jpg"
+      "/maps/inbox/riverton-1930-sheet-01/review-copy.jpg"
     );
   });
 
@@ -58,7 +58,7 @@ describe("GitHub map intake helpers", () => {
     expect(project.temporalJurisdictions).toEqual([]);
     expect(project.zoningEvidence).toEqual([]);
     expect(project.historicMap.rawImageUrl).toBe(
-      "/repo/maps/public-review/riverton-1930-sheet-01/review-copy.jpg"
+      "/repo/maps/inbox/riverton-1930-sheet-01/review-copy.jpg"
     );
   });
 
@@ -123,7 +123,7 @@ describe("GitHub map intake helpers", () => {
     expect(project.id).toBe("kentwood-mi-zoning-1970");
     expect(project.historicMap.placeName).toBe("Kentwood, Michigan");
     expect(project.historicMap.rawImageUrl).toBe(
-      "/repo/maps/public-review/kentwood-mi-zoning-1970/review-copy.png"
+      "/repo/maps/inbox/kentwood-mi-zoning-1970/review-copy.png"
     );
     expect(project.modernMapView).toEqual({ longitude: -85.61, latitude: 42.88, zoom: 12 });
   });

@@ -1,3 +1,4 @@
+# Deferred alternative only. GitHub Pages is the active picker host.
 services:
   - type: web
     name: map-georeference-picker

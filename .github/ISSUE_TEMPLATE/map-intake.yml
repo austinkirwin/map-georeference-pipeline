@@ -10,7 +10,7 @@ body:
 
         To create a map-backed Issue automatically, add maps/inbox/<map-id>/map.json and a small review image to the default branch.
 
-        Attach a small review image or PDF only when it may be shared with everyone allowed to view this Issue. Do not upload restricted sources, credentials, or sensitive locations. A reviewer can instead download an authorized file and open it locally in the Render workspace; that browser-local copy is not uploaded.
+        Attach a small review image or PDF only when it may be shared with everyone allowed to view this Issue. Do not upload restricted sources, credentials, or sensitive locations. A reviewer can instead download an authorized file and open it locally in the GitHub Pages workspace; that browser-local copy is not uploaded.
   - type: input
     id: map-id
     attributes:

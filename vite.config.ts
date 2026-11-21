@@ -1,24 +1,27 @@
 import { defineConfig } from "vitest/config";
 import { cpSync, createReadStream, statSync } from "node:fs";
 import { extname, isAbsolute, relative, resolve } from "node:path";
+import { env } from "node:process";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
 const projectRoot = resolve(".");
-const publicMapReviewDirectory = resolve(projectRoot, "maps", "public-review");
-const publicMapReviewPrefix = "/maps/public-review/";
+const mapInboxDirectory = resolve(projectRoot, "maps", "inbox");
+const mapInboxPrefix = "/maps/inbox/";
+const siteBasePath = normalizeSiteBasePath(env.VITE_BASE_PATH);
 
 export default defineConfig({
-  plugins: [publicMapReviewAssets(), react()],
+  base: siteBasePath,
+  plugins: [mapInboxAssets(), react()],
   test: {
     environment: "node",
     include: ["src/**/*.test.ts", "scripts/**/*.test.mjs"]
   }
 });
 
-function publicMapReviewAssets(): Plugin {
+function mapInboxAssets(): Plugin {
   return {
-    name: "public-map-review-assets",
+    name: "map-inbox-assets",
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
         const requestUrl = (request as unknown as { url?: string }).url ?? "/";
@@ -26,19 +29,17 @@ function publicMapReviewAssets(): Plugin {
           0,
           requestUrl.indexOf("?") === -1 ? undefined : requestUrl.indexOf("?")
         );
-        if (!pathname.startsWith(publicMapReviewPrefix)) {
+        if (!pathname.startsWith(mapInboxPrefix)) {
           next();
           return;
         }
 
         let filePath: string;
         try {
-          filePath = resolvePublicMapReviewPath(
-            decodeURIComponent(pathname.slice(publicMapReviewPrefix.length))
-          );
+          filePath = resolveMapInboxPath(decodeURIComponent(pathname.slice(mapInboxPrefix.length)));
         } catch {
           response.statusCode = 400;
-          response.end("Invalid public map-review asset path.");
+          response.end("Invalid map-inbox asset path.");
           return;
         }
 
@@ -62,7 +63,7 @@ function publicMapReviewAssets(): Plugin {
       const outputDirectory = outputOptions.dir
         ? resolve(outputOptions.dir)
         : resolve(projectRoot, "dist");
-      cpSync(publicMapReviewDirectory, resolve(outputDirectory, "maps", "public-review"), {
+      cpSync(mapInboxDirectory, resolve(outputDirectory, "maps", "inbox"), {
         force: true,
         recursive: true
       });
@@ -70,13 +71,29 @@ function publicMapReviewAssets(): Plugin {
   };
 }
 
-function resolvePublicMapReviewPath(relativePath: string): string {
-  const filePath = resolve(publicMapReviewDirectory, relativePath);
-  const pathFromPublicReview = relative(publicMapReviewDirectory, filePath);
-  if (!relativePath || pathFromPublicReview.startsWith("..") || isAbsolute(pathFromPublicReview)) {
-    throw new Error("Public map-review path escapes its root.");
+function resolveMapInboxPath(relativePath: string): string {
+  const filePath = resolve(mapInboxDirectory, relativePath);
+  const pathFromInbox = relative(mapInboxDirectory, filePath);
+  if (!relativePath || pathFromInbox.startsWith("..") || isAbsolute(pathFromInbox)) {
+    throw new Error("Map-inbox path escapes its root.");
   }
   return filePath;
+}
+
+function normalizeSiteBasePath(value: string | undefined): string {
+  if (!value || value === "/") {
+    return "/";
+  }
+  if (
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.includes("..") ||
+    value.includes("?") ||
+    value.includes("#")
+  ) {
+    throw new Error("VITE_BASE_PATH must be a safe absolute URL path.");
+  }
+  return value.endsWith("/") ? value : value + "/";
 }
 
 function contentTypeFor(filePath: string): string {

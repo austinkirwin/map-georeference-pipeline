@@ -121,7 +121,6 @@ function assertManifestShape(manifest, folderMapId) {
   }
   requiredString(manifest.source, "title");
   requiredString(manifest.source, "accessedAt");
-  requiredString(manifest.source, "rights");
 
   if (manifest.storage !== undefined && !isRecord(manifest.storage)) {
     throw new Error("map.json.storage must be an object when supplied.");

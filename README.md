@@ -1,13 +1,13 @@
 # Historical Map Georeferencing Pipeline
 
 This project uses GitHub as the intake and human-review record for historical
-map georeferencing. Its browser interface is a Render static site, not GitHub
-Pages.
+map georeferencing. Its browser interface is a GitHub Pages static site.
 
 Each map has a GitHub Issue for source information, landmark-review discussion,
-quality checks, and the reviewed record. The Render workspace can open an
-explicitly published, rights-cleared review copy or a reviewer-selected local
-file. It does not receive GitHub, Dropbox, or OpenAI credentials and does not
+quality checks, and the reviewed record. When a `map.json` intake record reaches
+the default branch under `maps/inbox/<map-id>/`, the map-intake Action creates
+one Issue with a direct GitHub Pages picker link for that map and Issue number.
+The picker does not receive GitHub, Dropbox, or OpenAI credentials and does not
 write comments automatically.
 
 This is a research workflow. It does not make legal, surveying, or
@@ -18,19 +18,17 @@ authoritative zoning determinations.
 1. Add a small, authorized review copy and its `map.json` intake record under
    `maps/inbox/<map-id>/`, stage one from Dropbox through a review PR, or open
    a Map intake Issue with a durable source link.
-2. A human merges an appropriate repository intake record to the default
+2. A human reviews and merges the repository intake record to the default
    branch.
-3. The map-intake GitHub Action creates one Issue for that map.
-4. Open the Render review-workspace link in the Issue.
-5. If a human has explicitly approved a public copy under
-   `maps/public-review/<map-id>/`, it opens from the query link. Otherwise,
-   download an authorized review image from the Issue or Dropbox and choose
-   **Open local review copy**. That image remains in the browser session.
-6. Click matching landmarks on the historical map and modern reference map.
-7. Copy the issue-ready landmark record and paste it into the Issue.
-8. Review source information, control-point distribution, residuals,
+3. The map-intake GitHub Action creates one Issue for that map. The Pages
+   deployment Action builds the picker and its inbox assets from that branch.
+4. Open the GitHub Pages picker link in the Issue. If the site is still
+   deploying, wait a few minutes and reload it.
+5. Click matching landmarks on the historical map and modern reference map.
+6. Copy the issue-ready landmark record and paste it into the Issue.
+7. Review source information, control-point distribution, residuals,
    independent check points, and overlay alignment.
-9. Save the reviewed record under `maps/manifests/` and use it as input to
+8. Save the reviewed record under `maps/manifests/` and use it as input to
    later GDAL, COG, and spatial-database processing.
 
 ```text
@@ -40,53 +38,61 @@ human-reviewed intake PR / default branch
         ->
 GitHub Action creates a map Issue
         ->
-Render review workspace (published copy or browser-local file)
+GitHub Pages landmark picker
         ->
 reviewer pastes landmark record into Issue
         ->
 reviewed manifest and reproducible processing
 ```
 
-## Render deployment
+## GitHub Pages deployment
 
-[`render.yaml`](render.yaml) defines a static Render service. Its deployment is
-manual by default and runs both `pnpm run public:check` and `pnpm run check`
-before publishing `dist/`.
+[`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)
+builds and deploys the static picker from the default branch. It runs
+`pnpm run public:check` and `pnpm run check` before publishing `dist/`, and
+uses GitHub's configured Pages base path so project-site asset links work.
 
-1. In Render, create a new Blueprint from this repository and select the
-   default branch.
-2. Let the checked-in `render.yaml` supply the build and publish settings. The
-   static site needs no secrets.
-3. After the first deployment, create the GitHub Actions repository variable
-   `RENDER_REVIEW_URL` with the HTTPS Render URL, for example
-   `https://your-picker.onrender.com`.
-4. New intake Issues then include a direct link with the map ID and Issue
-   number. Existing Issues can use the same URL with
-   `?map=<map-id>&issue=<issue-number>`.
+Enable it once in **Settings → Pages → Build and deployment**, choosing
+**GitHub Actions** as the source. The default project-site URL is:
 
-Render must receive only the compiled public site. It is not a Dropbox webhook
-receiver or a credential store for browser code.
+```text
+https://<owner>.github.io/<repository>/
+```
+
+The map-intake Action derives that URL and adds
+`?map=<map-id>&issue=<issue-number>` to each new Issue. For a custom domain or
+nonstandard Pages URL, set the `PAGES_REVIEW_URL` repository variable to its
+credential-free HTTPS base URL. It is a variable, not a secret; do not put
+tokens, credentials, or private URLs in it.
+
+Existing Issues are intentionally not rewritten. After Pages is live, their
+reviewer can open the same URL pattern manually, or a maintainer can update the
+Issue body with the Pages link.
 
 ## Public versus private map material
 
 ```text
-maps/inbox/          Intake metadata and small collaborator review copies
-maps/public-review/  Explicitly approved assets copied into the Render build
-maps/manifests/      Reviewed control-point and transform records
-maps/processed/      Documentation for generated outputs; large artifacts stay outside Git
-maps/templates/      Copyable map.json template
+maps/inbox/      Intake metadata and small review copies deployed with GitHub Pages
+maps/manifests/  Reviewed control-point and transform records
+maps/processed/  Documentation for generated outputs; large artifacts stay outside Git
+maps/templates/  Copyable map.json template
 ```
 
-`maps/inbox/` is never copied to `dist/`. Moving a two-file bundle to
-`maps/public-review/` is a separate, human-reviewed publication decision. Run
-`pnpm run public:check` before deploying; it verifies the published tier's
-rights statement, durable HTTPS source record, manifest, and declared review
-image.
+The Pages build copies `maps/inbox/` into the static site so a direct Issue
+link can open the repository review copy. Therefore every review image placed
+there is available to the audience permitted to view the GitHub Pages site. In
+a public repository with a public Pages site, it is public. Do not put archival
+scans, TIFFs, PDFs, COGs, tiles, MBTiles, GeoPackages, restricted maps, or
+credentials in that folder or ordinary Git history.
 
-Do not put archival scans, TIFFs, PDFs, COGs, tiles, MBTiles, GeoPackages,
-restricted maps, or credentials in either Git history or the Render site. A
-private Issue attachment or Dropbox original can be loaded through the local
-file picker without being uploaded, committed, or sent to Render.
+Use a private Issue attachment or an approved storage location when the map
+cannot be exposed to the Pages audience. A reviewer can load an authorized
+local image through the picker without uploading, committing, or sending that
+image to GitHub Pages.
+
+Run `pnpm run public:check` before deployment; it validates the small inbox
+bundle contract. A reviewer must still verify authorization, provenance, and
+suitability before merging a map.
 
 ## Dropbox intake (manual, review-first)
 
@@ -100,6 +106,11 @@ The original scan stays in Dropbox. Do not use this path for TIFFs, PDFs, COGs,
 tiles, restricted scans, or other material prohibited from ordinary Git
 history. See [Dropbox map intake](docs/dropbox-intake.md) for setup and run
 instructions.
+
+GitHub Pages is static and is not a Dropbox webhook receiver. The checked-in
+[`render.yaml`](render.yaml) is retained only as a deferred, manual-deployment
+template for a future broker or alternative interface; Render is not part of
+the active review path.
 
 ## Reference basemap
 
@@ -119,15 +130,18 @@ tokens, or other credentials. See [`.env.example`](.env.example).
 1. In repository Settings, Actions, General, allow workflows to receive the
    permissions they request. The map-intake workflow needs `issues: write` so
    it can create Issues and labels.
-2. Enable branch protection or a ruleset for the default branch, including the
+2. In repository Settings, Pages, select **GitHub Actions** as the deployment
+   source and configure the site's visibility/access to match the review-copy
+   policy.
+3. Enable branch protection or a ruleset for the default branch, including the
    Quality check and human PR review.
-3. Deploy the Render Blueprint and set the `RENDER_REVIEW_URL` repository
-   variable as described above.
-4. Optional: the manual Codex landmark-record reviewer needs an
+4. Optional: set the `PAGES_REVIEW_URL` repository variable only when the
+   actual Pages base URL differs from the standard project-site URL.
+5. Optional: the manual Codex landmark-record reviewer needs an
    `OPENAI_API_KEY` Actions secret before it can run. It is disabled by default
    and never runs on an Issue, push, or pull-request event. See
    [`docs/codex-issue-assist.md`](docs/codex-issue-assist.md).
-5. Optional: configure the protected `dropbox-intake` environment and its three
+6. Optional: configure the protected `dropbox-intake` environment and its three
    Dropbox OAuth secrets to use the manual Dropbox-to-review-PR workflow. See
    [`docs/dropbox-intake.md`](docs/dropbox-intake.md).
 
@@ -135,9 +149,9 @@ tokens, or other credentials. See [`.env.example`](.env.example).
 
 - Map intake folders and metadata template
 - Automatic Issue creation for map records added to the default branch
+- GitHub Pages static landmark picker for repository review copies
 - Manual Map intake Issue form for externally hosted maps
 - Manual Dropbox-to-review-PR intake for small authorized review copies
-- Render static review workspace for explicitly published maps
 - Browser-only opening of authorized private Issue attachments or local review images
 - Optional, manual-only Codex landmark-record completeness review
 - Side-by-side historic and modern-map control-point selection
@@ -158,10 +172,7 @@ authoritative zoning determination.
 ## Before making the repository public
 
 Making the repository public exposes its complete Git history, Issues, Actions
-logs, and every review image in `maps/inbox/`—even though Render copies only
-`maps/public-review/`. The current Kentwood fixture has no confirmed
-redistribution declaration and must be cleared, replaced, or removed before a
-public launch.
+logs, and every review image in `maps/inbox/` deployed by GitHub Pages.
 Follow [`docs/public-release-checklist.md`](docs/public-release-checklist.md)
 before changing visibility. A revert cannot make material that has already been
 copied or cached private again.
@@ -177,6 +188,11 @@ pnpm dev
 pnpm run check
 pnpm run public:check
 ```
+
+`pnpm dev` serves the picker locally (normally at
+`http://localhost:5173/`) with the repository inbox assets. It is for local
+development only; a Codespace or GitHub Pages deployment uses its own forwarded
+or Pages URL.
 
 For architecture, retention, research, public-release, and optional
 Codex-assistance guidance, see [`docs/architecture.md`](docs/architecture.md),

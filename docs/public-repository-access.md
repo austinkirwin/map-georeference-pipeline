@@ -82,15 +82,14 @@ changes. Do not enable this requirement until it names an available reviewer.
 5. Review **Secrets and variables** and remove secrets that are no longer
    needed. Keep `OPENAI_API_KEY`, if you enable the manual Codex workflow, as
    an Actions secret only.
-6. Review installed GitHub Apps, deploy keys, webhooks, Render deployment
-   credentials, and any legacy Pages deployment for unnecessary access.
+6. Review installed GitHub Apps, deploy keys, webhooks, and GitHub Pages
+   deployment settings for unnecessary access.
 
 The current workflows explicitly request only the permissions they need. Test
-the map-intake and Quality workflows after changing Actions defaults. If a
-future public deployment workflow is added, review its permissions separately
-before enabling it. A Render static deployment should have read-only access to
-the repository, deploy only the protected default branch, and serve only
-`maps/public-review/`; it must not receive GitHub, Dropbox, OpenAI, or map
+the map-intake, Quality, and Pages deployment workflows after changing Actions
+defaults. The Pages deployment should run only from the protected default
+branch and receive only the Pages and identity-token permissions needed to
+deploy its artifact. It must not receive GitHub, Dropbox, OpenAI, or map
 provider credentials in browser-visible configuration.
 
 ## Moderate public participation
@@ -115,9 +114,8 @@ Before announcing the repository, confirm that:
 - a contributor cannot push directly to the default branch;
 - a pull request requires the intended review and Quality check;
 - Actions secrets are not visible in workflow logs;
-- the Render static site deploys only rights-cleared `maps/public-review/`
-  assets from the protected default branch;
-- no legacy Pages site remains enabled; and
+- the Pages site deploys the intended `maps/inbox/` review assets from the
+  protected default branch; and
 - `pnpm run public:check` passes.
 
 For current GitHub instructions, see [repository roles for organizations](https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization), [rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository), [Actions settings](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository), and [interaction limits](https://docs.github.com/en/communities/moderating-comments-and-conversations/limiting-interactions-in-your-repository).

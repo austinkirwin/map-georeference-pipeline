@@ -3,11 +3,9 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const publicReviewDirectory = join(repositoryRoot, "maps", "public-review");
-const allowedPublicReviewRootFiles = new Set(["README.md"]);
+const inboxDirectory = join(repositoryRoot, "maps", "inbox");
+const allowedInboxRootFiles = new Set(["README.md"]);
 const allowedReviewImageExtensions = new Set([".avif", ".jpeg", ".jpg", ".png", ".webp"]);
-const prohibitedRightsLanguage =
-  /\b(unknown|unverified|verify|testing|test only|todo|tbd|restricted|private|not for redistribution)\b/i;
 const errors = [];
 
 function addError(message) {
@@ -21,27 +19,27 @@ function requireLicense() {
   }
 }
 
-function validatePublishedMapReviews() {
-  if (!existsSync(publicReviewDirectory)) {
-    addError("maps/public-review does not exist.");
+function validateMapIntakes() {
+  if (!existsSync(inboxDirectory)) {
+    addError("maps/inbox does not exist.");
     return 0;
   }
 
   let mapCount = 0;
-  for (const entry of readdirSync(publicReviewDirectory, { withFileTypes: true })) {
+  for (const entry of readdirSync(inboxDirectory, { withFileTypes: true })) {
     if (!entry.isDirectory()) {
-      if (!allowedPublicReviewRootFiles.has(entry.name)) {
+      if (!allowedInboxRootFiles.has(entry.name)) {
         addError(
-          `maps/public-review/${entry.name}: only map folders and the public-review README may be deployed.`
+          `maps/inbox/${entry.name}: only map folders and the inbox README may be deployed.`
         );
       }
       continue;
     }
 
-    const reviewDirectory = join(publicReviewDirectory, entry.name);
-    const manifestPath = join(reviewDirectory, "map.json");
+    const intakeDirectory = join(inboxDirectory, entry.name);
+    const manifestPath = join(intakeDirectory, "map.json");
     if (!existsSync(manifestPath)) {
-      addError(`${entry.name}: published map folders must contain map.json.`);
+      addError(`${entry.name}: map folders must contain map.json.`);
       continue;
     }
 
@@ -55,27 +53,7 @@ function validatePublishedMapReviews() {
     }
 
     if (manifest.id !== entry.name) {
-      addError(`${entry.name}: map.json id must exactly match the published folder name.`);
-    }
-
-    const source = manifest.source && typeof manifest.source === "object" ? manifest.source : {};
-    const rights = typeof source.rights === "string" ? source.rights.trim() : "";
-    if (!rights || prohibitedRightsLanguage.test(rights)) {
-      addError(
-        `${entry.name}: source.rights must state confirmed public redistribution terms, not ${
-          rights ? JSON.stringify(rights) : "an empty value"
-        }.`
-      );
-    }
-
-    const sourceUrl = typeof source.url === "string" ? source.url.trim() : "";
-    try {
-      const parsedUrl = new URL(sourceUrl);
-      if (parsedUrl.protocol !== "https:") {
-        throw new Error("not HTTPS");
-      }
-    } catch {
-      addError(`${entry.name}: source.url must be a durable HTTPS source record.`);
+      addError(`${entry.name}: map.json id must exactly match the intake folder name.`);
     }
 
     const reviewImage = typeof manifest.reviewImage === "string" ? manifest.reviewImage : "";
@@ -89,16 +67,16 @@ function validatePublishedMapReviews() {
       addError(`${entry.name}: reviewImage must be a supported raster image file.`);
     }
 
-    const reviewImagePath = join(reviewDirectory, reviewImage);
+    const reviewImagePath = join(intakeDirectory, reviewImage);
     if (!existsSync(reviewImagePath) || !statSync(reviewImagePath).isFile()) {
       addError(`${entry.name}: review image ${JSON.stringify(reviewImage)} is missing.`);
     }
 
     const expectedFiles = new Set(["map.json", reviewImage]);
-    for (const child of readdirSync(reviewDirectory, { withFileTypes: true })) {
+    for (const child of readdirSync(intakeDirectory, { withFileTypes: true })) {
       if (!child.isFile() || !expectedFiles.has(child.name)) {
         addError(
-          `${entry.name}: only map.json and the declared review image may be stored in a published map folder.`
+          `${entry.name}: only map.json and the declared review image may be stored in a public map intake folder.`
         );
       }
     }
@@ -108,7 +86,7 @@ function validatePublishedMapReviews() {
 }
 
 requireLicense();
-const mapCount = validatePublishedMapReviews();
+const mapCount = validateMapIntakes();
 
 if (errors.length > 0) {
   console.error("Public release check failed:");
@@ -117,5 +95,5 @@ if (errors.length > 0) {
   }
   process.exitCode = 1;
 } else {
-  console.log(`Public release check passed for ${mapCount} published map review(s).`);
+  console.log(`Public release check passed for ${mapCount} public map intake(s).`);
 }

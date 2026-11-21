@@ -4,8 +4,8 @@
 
 - **Map contributor** adds a small review copy and intake record, or opens the Map intake Issue form.
 - **GitHub Action** creates the canonical map Issue when a new map.json record reaches the default branch.
-- **Reviewer** uses the linked Render picker for a public review copy, or a
-  local browser session for authorized restricted material, checks
+- **Reviewer** uses the linked GitHub Pages picker for a repository review
+  copy, or a local browser session for authorized restricted material, checks
   source/provenance, and pastes the landmark record into the Issue.
 - **Processor** later turns a reviewed manifest into GDAL artifacts, COGs, and spatial records.
 
@@ -21,24 +21,13 @@ maps/inbox/<map-id>/
 
 map.json is intentionally small, structured metadata. It should point to the
 durable original scan if that scan does not belong in Git. A review copy is
-appropriate only when all authorized repository collaborators may access it.
-An intake record is not automatically eligible for public deployment.
-
-### Public Render review tier
-
-Only an explicit, rights-cleared promotion belongs in:
-
-```text
-maps/public-review/<map-id>/
-  map.json
-  review-copy.<supported-image-extension>
-```
-
-Render deploys this tier, not `maps/inbox`. Its manifest and review image must
-be safe for anonymous redistribution and must not contain a private Dropbox
-link, credentials, a restricted scan, or a claim that the overlay is an
-authoritative zoning determination. Keep restricted maps outside the public
-tier and open them only through the browser's local-file route.
+appropriate only when everyone who can access the Pages deployment may access
+it (the public if the repository and Pages site are public). GitHub Pages
+serves this directory as part of the review interface, so do not place private
+Dropbox links, credentials, restricted scans, or claims that an overlay is an
+authoritative zoning determination in a repository review copy. Keep
+restricted maps outside the repository and open them only through the
+browser's local-file route.
 
 ### Dropbox review-PR route
 
@@ -49,9 +38,9 @@ new `map.json` only after a human merge, so the normal deduplication marker and
 Issue contract remain unchanged. The original scan stays in Dropbox. See
 [`docs/dropbox-intake.md`](dropbox-intake.md).
 
-Passing Dropbox validation does not publish a map to Render. A human must make
-a separate, explicit decision to promote a rights-cleared public derivative to
-`maps/public-review`.
+After a human merges a Dropbox intake PR, the normal Pages deployment can make
+the small repository review copy available to the Issue-linked picker. Dropbox
+validation does not approve landmarks or make a zoning conclusion.
 
 The map-intake Action only reacts to map.json paths on the default branch. It does not open or parse raster files, so an uploaded map cannot cause the workflow to execute untrusted map content.
 
@@ -61,8 +50,7 @@ The generated Issue includes:
 
 - a hidden, deterministic intake marker used to avoid duplicate Issues;
 - a link to the map intake record;
-- for a public review copy, a link to the Render picker with the map identifier
-  and Issue number;
+- a link to the GitHub Pages picker with the map identifier and Issue number;
 - for a restricted map, instructions for opening an authorized local browser
   review session;
 - source and quality-review checklists;
@@ -70,28 +58,28 @@ The generated Issue includes:
 
 The Issue is the human-readable evidence trail. It should not be treated as the system of record for large source files or derived rasters.
 
-## Render and local picker contract
+## GitHub Pages and local picker contract
 
-The public Render picker can open a public-review record using:
+The GitHub Pages picker can open a repository intake record using:
 
 ```text
 ?map=<map-id>&issue=<issue-number>
 ```
 
-It loads only `maps/public-review/<map-id>/map.json` and the named public
-review image. It can also open an authorized PNG, JPEG, or WebP selected
+It loads `maps/inbox/<map-id>/map.json` and the named review image from the
+Pages deployment. It can also open an authorized PNG, JPEG, or WebP selected
 locally after a reviewer downloads it from a private Issue or another approved
-source. The local file is not uploaded, committed, sent to GitHub, or sent to
-Render by the picker. A PDF must be converted to a review image before this
-browser-only route can use it.
+source. The local file is not uploaded, committed, or sent to GitHub Pages by
+the picker. A PDF must be converted to a review image before this browser-only
+route can use it.
 
-The picker can save public-review work in the browser and copy a Markdown
+The picker can save repository-map work in the browser and copy a Markdown
 landmark table for an Issue comment. Local-file sessions intentionally do not
 persist control points after the tab is closed.
 
-The Render deployment is public by design, so it must not offer repository
-intake assets, private Issue attachments, or Dropbox source files. Local
-review remains a separate browser-only route.
+The Pages deployment reflects the repository review copy. It must not offer
+credentials, private Issue attachments, or Dropbox source files. Local review
+remains a separate browser-only route.
 
 The picker must never contain a Personal Access Token, OAuth secret, or GitHub App private key. Automated write-back requires a backend or GitHub App with narrowly scoped authorization and explicit user consent.
 

@@ -21,3 +21,7 @@ declare module "node:path" {
   export function relative(from: string, to: string): string;
   export function resolve(...paths: string[]): string;
 }
+
+declare module "node:process" {
+  export const env: Record<string, string | undefined>;
+}

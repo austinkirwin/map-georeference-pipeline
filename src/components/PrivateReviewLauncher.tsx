@@ -56,7 +56,7 @@ export function PrivateReviewLauncher({
           <p className="eyebrow">Review workspace</p>
           <h2>Open the map linked to your Issue</h2>
         </div>
-        <span className="source-badge">Render</span>
+        <span className="source-badge">GitHub Pages</span>
       </div>
       <p className="panel-note">
         This browser workspace receives no GitHub or Dropbox credentials and never writes to an
@@ -65,11 +65,10 @@ export function PrivateReviewLauncher({
 
       <div className="private-review-options">
         <form className="private-review-form" onSubmit={handleRepositorySubmit}>
-          <h3>Published review copy</h3>
+          <h3>Repository review copy</h3>
           <p>
-            Use this only when a human has approved a rights-cleared review copy for
-            <code> maps/public-review</code>. Intake copies and Dropbox originals are not hosted
-            here.
+            Use the map ID from the Issue. GitHub Pages loads the small review copy from
+            <code> maps/inbox</code>; it never receives a GitHub or Dropbox credential.
           </p>
           <label className="field-label" htmlFor="map-id">
             Map ID
@@ -93,7 +92,7 @@ export function PrivateReviewLauncher({
             value={issueNumber}
           />
           <button className="primary-button" type="submit">
-            Open published copy
+            Open repository copy
           </button>
         </form>
 
@@ -101,7 +100,7 @@ export function PrivateReviewLauncher({
           <h3>Private Issue attachment or local review copy</h3>
           <p>
             Download an authorized image from the Issue or Dropbox, then select it here. It stays in
-            this browser session and is not uploaded, sent to Render, or committed.
+            this browser session and is not uploaded or committed.
           </p>
           <label className="field-label" htmlFor="local-review-image">
             Review image

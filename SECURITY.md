@@ -7,7 +7,7 @@ Security fixes are made against the current default branch.
 ## Reporting a vulnerability
 
 Do not disclose a suspected vulnerability in a public Issue, discussion, pull
-request, map-intake record, or Render deployment.
+request, map-intake record, or GitHub Pages deployment.
 
 Use this repository's private vulnerability-reporting channel when GitHub shows
 the **Report a vulnerability** option in the Security tab. The repository owner
@@ -21,6 +21,6 @@ map data, or a full exploit in a public post.
 ## Scope
 
 Reports are welcome for the React application, GitHub Actions workflows, the
-Render static deployment, and documented data-handling boundaries. Historical-
+GitHub Pages deployment, and documented data-handling boundaries. Historical-
 map source rights, zoning conclusions, and map georeferencing disagreements
 should use the ordinary research-review workflow instead of a security report.

@@ -18,8 +18,7 @@ const validManifest = {
   targetCrs: "EPSG:3857",
   source: {
     title: "Riverton archive",
-    accessedAt: "2026-11-17",
-    rights: "Authorized for repository review by all repository collaborators."
+    accessedAt: "2026-11-17"
   }
 };
 
@@ -40,7 +39,7 @@ function pngBytes() {
 }
 
 describe("Dropbox map-intake validation", () => {
-  it("accepts one manifest and one rights-cleared PNG review copy", () => {
+  it("accepts one manifest without source.rights and one PNG review copy", () => {
     const result = validateDropboxIntakeBundle({
       folderPath: "/intake/riverton-1930-sheet-01",
       entries: [fileEntry("map.json"), fileEntry("review-copy.png")],

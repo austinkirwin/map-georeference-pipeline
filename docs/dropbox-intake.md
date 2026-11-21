@@ -16,16 +16,14 @@ human source/rights review and merge
         |
 existing map-intake Action creates the canonical Issue
         |
-separate human promotion of a public derivative, if authorized
-        |
-Render static review interface
+GitHub Pages review interface
 ```
 
 The original source scan remains in Dropbox or another approved archive. The
 existing map-intake workflow runs only after a human merges the PR to the
-default branch. Dropbox validation and merge do not publish a map to Render.
-Only a separate human decision may place a rights-cleared derivative under
-`maps/public-review/` for public deployment.
+default branch. GitHub Pages then deploys the picker and the repository review
+copy from `maps/inbox/`; do not stage restricted or archival material through
+this path.
 
 ## Bundle contract
 
@@ -41,7 +39,9 @@ contain exactly two files:
 `<map-id>` must exactly match `map.json.id`. The review image must exactly
 match `map.json.reviewImage`, be at most 8 MiB, and pass a PNG, JPEG, or WebP
 signature check. The manifest must include a title, place, date, dimensions,
-target CRS, and source title, access date, and rights statement.
+target CRS, and source title and access date. Record any known rights or
+access terms in the review record, but a `source.rights` JSON property is not
+required.
 
 The folder must not contain a TIFF, PDF, ZIP, COG, MBTiles, GeoPackage, raw
 scan, nested directory, or any other extra file. Keep those source materials
@@ -101,8 +101,8 @@ DROPBOX_INGEST_ROOT=/intake
 ```
 
 The values are used only by `.github/workflows/dropbox-map-intake.yml`; they
-are never copied into Render, browser code, map manifests, Issues, or workflow
-summaries.
+are never copied into GitHub Pages, browser code, map manifests, Issues, or
+workflow summaries.
 
 ## Run an import
 
@@ -124,11 +124,11 @@ anything, and has no Dropbox write scope.
 
 ## Why this is manual first
 
-Dropbox webhooks need a public, signature-validating receiver. The Render
-static site is not a receiver and must not be used for this purpose. A future
-automatic design could use a separate Render web service, worker, or GitHub
-App that verifies the Dropbox request, records a cursor, and triggers a
-repository dispatch. Keep that broker separate from the public static site.
+Dropbox webhooks need a public, signature-validating receiver. GitHub Pages is
+not a receiver and must not be used for this purpose. A future automatic design
+could use a separate worker, GitHub App, or deferred Render web service that
+verifies the Dropbox request, records a cursor, and triggers a repository
+dispatch. Keep that broker separate from the public static site.
 
 Keep that broker separate from the model-review and Issue-writing paths. Do
 not add Dropbox write/delete scope until a human-reviewed, post-merge
