@@ -295,7 +295,7 @@ export default function App() {
         <ol className="workflow-list">
           <li className={mode === "edit" ? "active" : ""}>Pair durable landmarks</li>
           <li className={mode === "review" ? "active" : ""}>Inspect provisional overlay</li>
-          <li>Confirm sources and independent checks</li>
+          <li>Build with fit points; validate with independent checks</li>
           <li>Publish a reproducible artifact</li>
         </ol>
       </section>
@@ -315,12 +315,19 @@ export default function App() {
           onChange={(event) => setNextPointRole(event.target.value as ControlPointRole)}
           value={nextPointRole}
         >
-          <option value="fit">Fit transform</option>
-          <option value="check">Independent check</option>
+          <option value="fit">Fit point — builds transform</option>
+          <option value="check">Independent check — validates transform</option>
         </select>
-        <p className="panel-note">
-          Use check points only to evaluate error. They do not alter the transform.
-        </p>
+        <div className="point-role-explainer">
+          <p>
+            <strong>Fit points</strong> build the transform. Use at least three well-distributed,
+            non-collinear landmarks.
+          </p>
+          <p>
+            <strong>Independent check points</strong> stay out of the fit. Their residual tests how
+            well the transform predicts a landmark it did not use.
+          </p>
+        </div>
       </section>
 
       <section className="panel layers-panel">

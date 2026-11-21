@@ -242,12 +242,102 @@ h2 {
   line-height: 0;
 }
 
-.historic-map-stage img {
+.historic-map-stage.is-zoomed {
+  overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y;
+}
+
+.historic-map-canvas {
+  position: relative;
+  min-width: 100%;
+}
+
+.historic-map-canvas img {
   display: block;
   width: 100%;
   height: auto;
   cursor: crosshair;
   user-select: none;
+}
+
+.historic-map-controls {
+  display: grid;
+  grid-template-columns: auto auto minmax(4rem, 1fr) auto auto auto;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 1rem 0.75rem;
+  color: #405c59;
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
+.historic-zoom-label {
+  font-weight: 700;
+}
+
+.historic-map-controls input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  accent-color: #0d6e68;
+}
+
+.historic-zoom-button,
+.historic-reset-button {
+  min-height: 2rem;
+  border: 1px solid #b6c5c0;
+  border-radius: 0.3rem;
+  background: #f8fbf9;
+  color: #315b57;
+  font: inherit;
+  font-weight: 700;
+}
+
+.historic-zoom-button {
+  width: 2rem;
+  font-size: 1rem;
+}
+
+.historic-reset-button {
+  padding: 0.2rem 0.45rem;
+}
+
+.historic-zoom-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.historic-map-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.9rem;
+  margin: 0.65rem 1rem 0;
+  color: #526b67;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.historic-map-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.point-key {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0.04rem 0.22rem rgba(13, 40, 38, 0.35);
+}
+
+.point-key.fit {
+  background: #0d6e68;
+}
+
+.point-key.check {
+  background: #b84a25;
 }
 
 .point-marker {
@@ -440,6 +530,19 @@ input[type="range"] {
   color: #687d79;
   font-size: 0.78rem;
   line-height: 1.4;
+}
+
+.point-role-explainer {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+  color: #687d79;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.point-role-explainer p {
+  margin: 0;
 }
 
 .layer-list,

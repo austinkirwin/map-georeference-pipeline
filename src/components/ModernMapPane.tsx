@@ -143,8 +143,8 @@ export function ModernMapPane({
       ) : null}
       <div className="modern-map-stage" ref={containerRef} />
       <div className="pane-footer">
-        <span>Green = fit point</span>
-        <span>Orange = independent check point</span>
+        <span>Green = fit point (builds transform)</span>
+        <span>Orange = independent check (validates transform)</span>
       </div>
     </section>
   );

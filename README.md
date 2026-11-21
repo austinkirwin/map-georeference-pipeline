@@ -48,6 +48,15 @@ reviewer pastes landmark record into Issue
 reviewed manifest and reproducible processing
 ```
 
+### Control-point roles
+
+**Fit points** are the landmarks used to calculate the transform. Use at least
+three well-distributed, non-collinear fit points across the sheet.
+
+**Independent check points** are deliberately withheld from that calculation.
+Their residuals test how well the transform predicts landmarks it did not use,
+so the same landmark must not serve as both a fit point and a check point.
+
 ## GitHub Pages deployment
 
 [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)

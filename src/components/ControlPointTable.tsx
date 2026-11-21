@@ -55,7 +55,8 @@ export function ControlPointTable({
         </table>
       </div>
       <p className="panel-note">
-        Check points remain outside the fit and provide independent error evidence.
+        Fit points calculate the transform. Independent check points stay out of it; their residual
+        tests accuracy on landmarks the transform did not use.
       </p>
     </section>
   );
