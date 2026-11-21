@@ -15,11 +15,14 @@ authoritative zoning determinations.
 
 ## Review workflow
 
-1. Add a small, authorized review copy and its `map.json` intake record under
-   `maps/inbox/<map-id>/`, stage one from Dropbox through a review PR, or open
-   a Map intake Issue with a durable source link.
+1. For the automatic route, add a small, authorized review copy and its
+   `map.json` intake record under `maps/inbox/<map-id>/`, or stage one from
+   Dropbox through a review PR. For an externally hosted or restricted map,
+   open a Map intake Issue instead.
 2. A human reviews and merges the repository intake record to the default
-   branch.
+   branch. A manually created Issue already exists; its reviewer opens the
+   standard Pages site and chooses **Open local review copy** for an authorized
+   browser-only image.
 3. The map-intake GitHub Action creates one Issue for that map. The Pages
    deployment Action builds the picker and its inbox assets from that branch.
 4. Open the GitHub Pages picker link in the Issue. If the site is still
@@ -191,8 +194,7 @@ pnpm run public:check
 
 `pnpm dev` serves the picker locally (normally at
 `http://localhost:5173/`) with the repository inbox assets. It is for local
-development only; a Codespace or GitHub Pages deployment uses its own forwarded
-or Pages URL.
+development only; the deployed GitHub Pages picker uses its own Pages URL.
 
 For architecture, retention, research, public-release, and optional
 Codex-assistance guidance, see [`docs/architecture.md`](docs/architecture.md),

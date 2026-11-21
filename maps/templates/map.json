@@ -18,8 +18,7 @@
     "repository": "Archive name",
     "url": "https://example.org/source-record",
     "locator": "Sheet, page, or call number",
-    "accessedAt": "2026-11-12",
-    "rights": "Describe rights or access terms"
+    "accessedAt": "2026-11-12"
   },
   "storage": {
     "originalUrl": "https://example.org/original-scan",

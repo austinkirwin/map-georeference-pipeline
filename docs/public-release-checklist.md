@@ -10,8 +10,8 @@ every map asset included in its deployment.
 - The project code and documentation use the MIT License. Confirm that it still
   matches your intended contributor terms, and do not treat it as a license for
   maps or other third-party content.
-- Confirm that every review image committed under `maps/inbox/`, its source
-  URL, citation, and generated artifact may be publicly redistributed. GitHub
+- Confirm that every review image committed under `maps/inbox/`, its citation,
+  any source URL, and generated artifact may be publicly redistributed. GitHub
   Pages serves the same repository review copies.
 - Choose a private security-reporting channel and enable GitHub private
   vulnerability reporting before inviting public contributions.
