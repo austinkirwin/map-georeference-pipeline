@@ -32,6 +32,9 @@ export function QaPanel({ analysis }: QaPanelProps) {
           <dd>{Math.round(analysis.coverageRatio * 100)}%</dd>
         </div>
       </dl>
+      <p className="panel-note">
+        Residuals use Web Mercator projected metres; they are not ground-distance measurements.
+      </p>
       {analysis.warnings.length > 0 ? (
         <ul className="warning-list">
           {analysis.warnings.map((warning) => (

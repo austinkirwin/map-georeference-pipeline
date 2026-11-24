@@ -28,9 +28,11 @@ authoritative zoning determinations.
 4. Open the GitHub Pages picker link in the Issue. If the site is still
    deploying, wait a few minutes and reload it.
 5. Click matching landmarks on the historical map and modern reference map.
-6. Copy the issue-ready landmark record and paste it into the Issue.
-7. Review source information, control-point distribution, residuals,
-   independent check points, and overlay alignment.
+6. Select **Done — review overlay** to generate a provisional browser overlay.
+   Inspect the alignment, fit-point coverage, and independent check residuals;
+   return to **Side-by-side edit** to correct or add points as needed.
+7. Copy the issue-ready landmark record and paste it into the Issue. Review
+   source information and document the human decision there.
 8. Save the reviewed record under `maps/manifests/` and use it as input to
    later GDAL, COG, and spatial-database processing.
 
@@ -77,6 +79,11 @@ approximate historic extent** frames the full historic sheet on the modern
 reference map. This is a provisional view based on the current fit, including
 any margins on the sheet; the maps do not automatically synchronize their zoom
 or pan. Check the fit with independent points before relying on it.
+
+The **Done — review overlay** button uses the current fit to display a draft
+overlay in the browser. It does not approve landmarks, close the Issue, or
+create a reviewed processing artifact. Local review images remain in the
+browser session.
 
 ## GitHub Pages deployment
 
@@ -189,7 +196,7 @@ tokens, or other credentials. See [`.env.example`](.env.example).
 - Optional, manual-only Codex landmark-record completeness review
 - Side-by-side historic and modern-map control-point selection
 - Separate fit and independent check points
-- Affine-fit residuals, RMSE, coverage warnings, and overlay review for the sample map
+- Affine-fit residuals, RMSE, coverage warnings, and provisional overlay review
 - Issue-ready landmark-record export
 
 ## Important limitations

@@ -6,7 +6,7 @@ import { ModernMapPane } from "./components/ModernMapPane";
 import { PrivateReviewLauncher } from "./components/PrivateReviewLauncher";
 import { QaPanel } from "./components/QaPanel";
 import { ResearchFinding } from "./components/ResearchFinding";
-import { demoOverlayCorners, demoProject } from "./data/demoProject";
+import { demoProject } from "./data/demoProject";
 import type {
   ControlPointRole,
   GeoreferenceProject,
@@ -15,6 +15,7 @@ import type {
   MapCoordinate
 } from "./domain/types";
 import { analyzeGeoreference } from "./lib/georeference";
+import { historicOverlayCorners } from "./lib/historicOverlay";
 import {
   getIssueContext,
   localMapIdFromFileName,
@@ -25,14 +26,10 @@ import {
 } from "./lib/mapIntake";
 
 type WorkspaceMode = "edit" | "review";
-type OverlayCorners = typeof demoOverlayCorners | undefined;
-
 export default function App() {
   const initialIssueContext = useMemo(() => getIssueContext(window.location.search), []);
   const [mode, setMode] = useState<WorkspaceMode>("edit");
   const [activeProject, setActiveProject] = useState<GeoreferenceProject>(demoProject);
-  const [activeOverlayCorners, setActiveOverlayCorners] =
-    useState<OverlayCorners>(demoOverlayCorners);
   const [requestedMapId, setRequestedMapId] = useState(initialIssueContext.mapId);
   const [activeIssueNumber, setActiveIssueNumber] = useState(initialIssueContext.issueNumber);
   const [localReviewActive, setLocalReviewActive] = useState(false);
@@ -75,7 +72,6 @@ export default function App() {
         }
         const project = projectFromMapIntake(parseMapIntake(document));
         setActiveProject(project);
-        setActiveOverlayCorners(undefined);
         setLocalReviewActive(false);
         setMapLoadState("ready");
         setNotice(
@@ -129,7 +125,16 @@ export default function App() {
       ),
     [activeProject.historicMap.heightPx, activeProject.historicMap.widthPx, controlPoints]
   );
-  const canReviewOverlay = analysis.transform !== undefined && activeOverlayCorners !== undefined;
+  const overlayCorners = useMemo(
+    () =>
+      historicOverlayCorners(
+        analysis.transform,
+        activeProject.historicMap.widthPx,
+        activeProject.historicMap.heightPx
+      ),
+    [analysis.transform, activeProject.historicMap.widthPx, activeProject.historicMap.heightPx]
+  );
+  const canReviewOverlay = overlayCorners !== undefined;
   const isDemoProject = activeProject.id === demoProject.id;
   const historicViewportAspectRatio =
     activeProject.historicMap.widthPx / activeProject.historicMap.heightPx;
@@ -158,6 +163,29 @@ export default function App() {
       nextMode === "place"
         ? "Historic map point placement is enabled. Scroll to zoom, then click a landmark."
         : "Historic map navigation is enabled. Scroll to zoom, then drag or use the arrow keys to move around the scan."
+    );
+  }
+
+  function handleDonePicking() {
+    if (mapLoadState === "loading" || mapLoadState === "error") {
+      setNotice("Open a map successfully before reviewing its overlay.");
+      return;
+    }
+    if (pendingHistoricPoint) {
+      setNotice(
+        "Complete the pending historic and modern landmark pair before reviewing the overlay."
+      );
+      return;
+    }
+    if (!canReviewOverlay) {
+      setNotice(
+        "A usable fit is needed for the overlay. Check that at least three enabled fit points are non-collinear and have valid modern locations."
+      );
+      return;
+    }
+    setMode("review");
+    setNotice(
+      "Opening the provisional overlay. Review fit and independent check residuals before approving the landmarks."
     );
   }
 
@@ -231,7 +259,6 @@ export default function App() {
       setActiveIssueNumber(input.issueNumber);
       setLocalReviewActive(true);
       setActiveProject(project);
-      setActiveOverlayCorners(undefined);
       setMapLoadState("ready");
       setShowLauncher(false);
       updateReviewLocation();
@@ -355,7 +382,7 @@ export default function App() {
           <button
             className={mode === "review" ? "mode-button active" : "mode-button"}
             disabled={!canReviewOverlay}
-            onClick={() => setMode("review")}
+            onClick={handleDonePicking}
             type="button"
           >
             Overlay review
@@ -389,8 +416,8 @@ export default function App() {
             </p>
             <p className="panel-note">
               Pick landmarks here, then copy the record into the GitHub Issue. This GitHub Pages
-              workspace never stores a GitHub token or posts on your behalf. Maps use side-by-side
-              review first; an overlay requires a reviewed server-side warp.
+              workspace never stores a GitHub token or posts on your behalf. The overlay is a
+              provisional browser preview, not an approved georeferenced artifact.
             </p>
           </div>
           <div className="issue-context-actions">
@@ -432,11 +459,21 @@ export default function App() {
               historicWidth={activeProject.historicMap.widthPx}
               initialView={activeProject.modernMapView}
               onPick={handleModernPick}
-              overlayCorners={activeOverlayCorners ?? demoOverlayCorners}
+              overlayCorners={overlayCorners}
               overlayOpacity={overlayOpacity}
               showOverlay={false}
               viewportAspectRatio={historicViewportAspectRatio}
             />
+          </div>
+          <div className="review-action">
+            <p>
+              When your landmark pairs look reasonable, select Done to inspect a provisional
+              overlay. Use at least three well-distributed, non-collinear fit points and separate
+              check points.
+            </p>
+            <button className="primary-button" onClick={handleDonePicking} type="button">
+              Done — review overlay
+            </button>
           </div>
         </section>
       ) : (
@@ -449,9 +486,9 @@ export default function App() {
             historicWidth={activeProject.historicMap.widthPx}
             initialView={activeProject.modernMapView}
             onPick={handleModernPick}
-            overlayCorners={activeOverlayCorners ?? demoOverlayCorners}
+            overlayCorners={overlayCorners}
             overlayOpacity={overlayOpacity}
-            showOverlay={activeOverlayCorners !== undefined}
+            showOverlay={true}
             viewportAspectRatio={historicViewportAspectRatio}
           />
           <aside className="review-sidebar">
@@ -471,9 +508,24 @@ export default function App() {
                 value={overlayOpacity}
               />
               <p className="panel-note">
-                This fictional sample demonstrates the review interaction. It is not a verified
-                geographic overlay.
+                {isDemoProject ? "Fictional demonstration. " : "Draft preview. "}Check the landmark
+                pairs, independent check residuals, and fit coverage before accepting the alignment.
+                Select Side-by-side edit to revise points. This does not approve points or close the
+                Issue.
               </p>
+              {!canReviewOverlay ? (
+                <p className="overlay-unavailable" role="alert">
+                  No overlay is available for the current points. Enable or add at least three
+                  non-collinear fit points with valid modern locations.
+                </p>
+              ) : null}
+              <button
+                className="text-button edit-points-button"
+                onClick={() => setMode("edit")}
+                type="button"
+              >
+                Edit landmark pairs
+              </button>
             </section>
             <QaPanel analysis={analysis} />
           </aside>

@@ -56,7 +56,8 @@ export function ControlPointTable({
       </div>
       <p className="panel-note">
         Fit points calculate the transform. Independent check points stay out of it; their residual
-        tests accuracy on landmarks the transform did not use.
+        tests accuracy on landmarks the transform did not use. Residuals are Web Mercator projected
+        metres, not ground-distance measurements.
       </p>
     </section>
   );

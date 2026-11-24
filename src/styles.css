@@ -173,6 +173,41 @@ h2 {
   min-width: 0;
 }
 
+.review-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  border: 1px solid #d4e2dc;
+  border-radius: 0.6rem;
+  padding: 0.75rem 1rem;
+  background: #fff;
+}
+
+.review-action p {
+  flex: 1 1 25rem;
+  margin: 0;
+  color: #405c59;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+.edit-points-button {
+  margin-top: 0.8rem;
+}
+
+.overlay-unavailable {
+  margin: 0.8rem 0 0;
+  border-left: 3px solid #b84a25;
+  padding: 0.5rem 0.65rem;
+  color: #6b2d1a;
+  background: #fff2ec;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
 .map-pair {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

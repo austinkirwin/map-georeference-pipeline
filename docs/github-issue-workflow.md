@@ -77,6 +77,13 @@ The picker can save repository-map work in the browser and copy a Markdown
 landmark table for an Issue comment. Local-file sessions intentionally do not
 persist control points after the tab is closed.
 
+Once the reviewer has at least three usable fit pairs, **Done — review
+overlay** creates a provisional browser preview using the current affine fit.
+The reviewer can adjust opacity, inspect fit and independent-check residuals,
+and return to landmark selection. The preview does not approve points, post a
+comment, close an Issue, or create a reviewed processing artifact. A local-file
+review copy remains in the browser session.
+
 The Pages deployment reflects the repository review copy. It must not offer
 credentials, private Issue attachments, or Dropbox source files. Local review
 remains a separate browser-only route.
