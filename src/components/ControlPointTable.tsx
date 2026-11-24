@@ -20,7 +20,12 @@ export function ControlPointTable({
         </div>
         <span>{controlPoints.filter((point) => point.enabled).length} active</span>
       </div>
-      <div className="table-scroll">
+      <div
+        aria-label="Control points table; scroll to see more"
+        className="table-scroll"
+        role="region"
+        tabIndex={0}
+      >
         <table>
           <thead>
             <tr>

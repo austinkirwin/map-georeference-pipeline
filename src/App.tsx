@@ -470,7 +470,14 @@ export default function App() {
                 viewportAspectRatio={historicViewportAspectRatio}
               />
             </div>
-            <QaPanel analysis={analysis} />
+            <aside className="edit-sidebar" aria-label="Control points and quality assurance">
+              <ControlPointTable
+                controlPoints={controlPoints}
+                onToggle={toggleControlPoint}
+                residualMetersByPointId={analysis.residualMetersByPointId}
+              />
+              <QaPanel analysis={analysis} />
+            </aside>
           </div>
           <div className="review-action">
             <p>
@@ -556,12 +563,14 @@ export default function App() {
         </section>
       )}
 
-      <section className="lower-panels">
-        <ControlPointTable
-          controlPoints={controlPoints}
-          onToggle={toggleControlPoint}
-          residualMetersByPointId={analysis.residualMetersByPointId}
-        />
+      <section className={mode === "edit" ? "lower-panels edit-lower-panels" : "lower-panels"}>
+        {mode === "review" ? (
+          <ControlPointTable
+            controlPoints={controlPoints}
+            onToggle={toggleControlPoint}
+            residualMetersByPointId={analysis.residualMetersByPointId}
+          />
+        ) : null}
         <ResearchFinding
           evidence={activeProject.zoningEvidence}
           finding={activeProject.sampleFinding}
