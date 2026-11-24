@@ -59,12 +59,24 @@ so the same landmark must not serve as both a fit point and a check point.
 
 ### Historic-map interaction
 
-Use the historic-scan sidebar to select **Place points** before clicking a
+Use the historic-map controls to select **Place points** before clicking a
 landmark. Select **Move around** to scroll-zoom around the cursor and
 click-drag the historic scan without creating a point. The zoom only changes
 the view; stored historic coordinates remain in the map's native pixel space.
 Keyboard users can focus the scan in **Move around** mode and pan with the
 arrow keys; hold Shift for a larger move.
+
+When **Place points** is selected, choose the next point's fit or independent
+check role in the historic-map controls. The Kentwood review copy includes a
+precomputed, AI-assisted list of possible landmarks from a visual scan; those
+suggestions and their modern counterparts require human verification and are
+not added as control points. Other maps are not automatically scanned.
+
+Once at least three usable fit points yield an affine transform, **Show
+approximate historic extent** frames the full historic sheet on the modern
+reference map. This is a provisional view based on the current fit, including
+any margins on the sheet; the maps do not automatically synchronize their zoom
+or pan. Check the fit with independent points before relying on it.
 
 ## GitHub Pages deployment
 

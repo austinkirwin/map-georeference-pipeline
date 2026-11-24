@@ -3,6 +3,8 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { GroundControlPoint, MapCoordinate, ModernMapView } from "../domain/types";
 import { resolveReferenceBasemap } from "../lib/basemap";
+import type { AffineTransform } from "../lib/georeference";
+import { historicExtentBounds } from "../lib/historicExtent";
 
 interface ModernMapPaneProps {
   controlPoints: GroundControlPoint[];
@@ -12,6 +14,9 @@ interface ModernMapPaneProps {
   historicImageUrl: string;
   overlayCorners: [[number, number], [number, number], [number, number], [number, number]];
   viewportAspectRatio: number;
+  historicTransform?: AffineTransform;
+  historicWidth: number;
+  historicHeight: number;
   initialView?: ModernMapView;
 }
 
@@ -28,6 +33,9 @@ export function ModernMapPane({
   historicImageUrl,
   overlayCorners,
   viewportAspectRatio,
+  historicTransform,
+  historicWidth,
+  historicHeight,
   initialView
 }: ModernMapPaneProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -38,6 +46,7 @@ export function ModernMapPane({
   const overlayOpacityRef = useRef(overlayOpacity);
   const [runtimeBasemapError, setRuntimeBasemapError] = useState<string>();
   const basemapMessage = runtimeBasemapError ?? referenceBasemap.configurationNotice;
+  const historicBounds = historicExtentBounds(historicTransform, historicWidth, historicHeight);
 
   useEffect(() => {
     onPickRef.current = onPick;
@@ -161,15 +170,37 @@ export function ModernMapPane({
         </div>
         <span className="source-badge">{referenceBasemap.displayName}</span>
       </div>
-      <p className="pane-instruction">
-        Choose the same landmark. This reference map is for orientation; authoritative municipal
-        layers belong here before publication.
-      </p>
-      {basemapMessage ? (
-        <p className="basemap-alert" role="alert">
-          {basemapMessage}
+      <div className="modern-map-description">
+        <p className="pane-instruction">
+          Choose the same landmark. This reference map is for orientation; authoritative municipal
+          layers belong here before publication.
         </p>
-      ) : null}
+        {basemapMessage ? (
+          <p className="basemap-alert" role="alert">
+            {basemapMessage}
+          </p>
+        ) : null}
+      </div>
+      <div className="modern-map-toolbar-spacer">
+        <button
+          className="text-button"
+          disabled={!historicBounds}
+          onClick={() => {
+            if (historicBounds) {
+              mapRef.current?.fitBounds(historicBounds, { padding: 16, maxZoom: 18 });
+            }
+          }}
+          title="Fits the reference view to the full historic sheet using the current provisional fit. At least three usable fit points are required."
+          type="button"
+        >
+          Show approximate historic extent
+        </button>
+        <p className="panel-note">
+          {historicBounds
+            ? "Uses the current provisional fit; verify it with independent check points."
+            : "Available after at least three non-collinear fit points produce a usable estimate."}
+        </p>
+      </div>
       <div
         className="modern-map-stage"
         ref={containerRef}

@@ -170,17 +170,23 @@ h2 {
 }
 
 .workbench {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(18rem, 20rem);
-  gap: 1rem;
-  align-items: start;
+  min-width: 0;
 }
 
 .map-pair {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(5, auto);
   gap: 1rem;
   min-width: 0;
+  align-items: stretch;
+}
+
+.map-pair > .map-pane {
+  display: grid;
+  grid-row: span 5;
+  grid-template-rows: subgrid;
+  gap: 0;
   align-items: start;
 }
 
@@ -300,6 +306,21 @@ h2 {
   gap: 0.6rem;
 }
 
+.historic-point-role {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+}
+
+.historic-point-role-help {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #59706e;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .historic-toolbar-label {
   color: #405c59;
   font-size: 0.82rem;
@@ -417,7 +438,6 @@ h2 {
 }
 
 .modern-map-stage {
-  min-height: 14rem;
   margin: 0 1rem;
   border: 1px solid #c4ceca;
   background: #d8e5e1;
@@ -432,14 +452,27 @@ h2 {
   font-size: 0.75rem;
 }
 
-.workspace-sidebar,
 .review-sidebar {
   display: grid;
   gap: 1rem;
 }
 
-.review-sidebar .workspace-sidebar {
+.workspace-information {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: start;
+}
+
+.workspace-information summary {
+  cursor: pointer;
+  color: #315b57;
+  font-weight: 800;
+}
+
+.workspace-information .layer-list {
+  margin-top: 0.85rem;
 }
 
 .panel {
@@ -897,14 +930,6 @@ td small {
 }
 
 @media (max-width: 1220px) {
-  .workbench {
-    grid-template-columns: 1fr;
-  }
-
-  .workspace-sidebar {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .private-review-options {
     grid-template-columns: 1fr;
   }
@@ -939,12 +964,20 @@ td small {
     justify-content: flex-start;
   }
 
-  .workbench,
   .map-pair,
   .review-workbench,
   .lower-panels,
-  .workspace-sidebar {
+  .workspace-information {
     grid-template-columns: 1fr;
+  }
+
+  .map-pair {
+    grid-template-rows: none;
+  }
+
+  .map-pair > .map-pane {
+    display: block;
+    grid-row: auto;
   }
 
   .pane-footer {

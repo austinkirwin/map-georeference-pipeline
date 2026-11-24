@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ControlPointTable } from "./components/ControlPointTable";
 import { HistoricMapPane, type HistoricMapInteractionMode } from "./components/HistoricMapPane";
+import { LandmarkSuggestions } from "./components/LandmarkSuggestions";
 import { ModernMapPane } from "./components/ModernMapPane";
 import { PrivateReviewLauncher } from "./components/PrivateReviewLauncher";
 import { QaPanel } from "./components/QaPanel";
@@ -301,55 +302,20 @@ export default function App() {
     }
   }
 
-  const workspaceSidebar = (
-    <aside className="workspace-sidebar">
-      <section className="panel workflow-panel">
-        <p className="eyebrow">Human review workflow</p>
+  const workspaceInformation = (
+    <section className="workspace-information" aria-label="Review information">
+      <details className="panel workflow-panel">
+        <summary>Human review workflow</summary>
         <ol className="workflow-list">
           <li className={mode === "edit" ? "active" : ""}>Pair durable landmarks</li>
           <li className={mode === "review" ? "active" : ""}>Inspect provisional overlay</li>
           <li>Build with fit points; validate with independent checks</li>
           <li>Publish a reproducible artifact</li>
         </ol>
-      </section>
+      </details>
 
-      <section className="panel add-point-panel">
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow">Next control point</p>
-            <h2>Role before placement</h2>
-          </div>
-        </div>
-        <label className="field-label" htmlFor="next-point-role">
-          Point role
-        </label>
-        <select
-          id="next-point-role"
-          onChange={(event) => setNextPointRole(event.target.value as ControlPointRole)}
-          value={nextPointRole}
-        >
-          <option value="fit">Fit point — builds transform</option>
-          <option value="check">Independent check — validates transform</option>
-        </select>
-        <div className="point-role-explainer">
-          <p>
-            <strong>Fit points</strong> build the transform. Use at least three well-distributed,
-            non-collinear landmarks.
-          </p>
-          <p>
-            <strong>Independent check points</strong> stay out of the fit. Their residual tests how
-            well the transform predicts a landmark it did not use.
-          </p>
-        </div>
-      </section>
-
-      <section className="panel layers-panel">
-        <div className="panel-heading">
-          <div>
-            <p className="eyebrow">Reference layers</p>
-            <h2>Current inputs</h2>
-          </div>
-        </div>
+      <details className="panel layers-panel">
+        <summary>Reference layers</summary>
         <ul className="layer-list">
           {activeProject.referenceLayers.map((layer) => (
             <li key={layer.id}>
@@ -363,8 +329,9 @@ export default function App() {
             </li>
           ))}
         </ul>
-      </section>
-    </aside>
+      </details>
+      <LandmarkSuggestions mapId={activeProject.id} />
+    </section>
   );
 
   return (
@@ -442,6 +409,8 @@ export default function App() {
         </section>
       ) : null}
 
+      {workspaceInformation}
+
       {mode === "edit" ? (
         <section className="workbench" aria-label="Side-by-side georeferencing editor">
           <div className="map-pair">
@@ -449,13 +418,18 @@ export default function App() {
               controlPoints={controlPoints}
               interactionMode={historicInteractionMode}
               map={activeProject.historicMap}
+              nextPointRole={nextPointRole}
               onInteractionModeChange={setHistoricMapInteractionMode}
               onPick={handleHistoricPick}
+              onPointRoleChange={setNextPointRole}
               pendingPoint={pendingHistoricPoint}
             />
             <ModernMapPane
               controlPoints={controlPoints}
+              historicHeight={activeProject.historicMap.heightPx}
               historicImageUrl={activeProject.historicMap.rawImageUrl}
+              historicTransform={analysis.transform}
+              historicWidth={activeProject.historicMap.widthPx}
               initialView={activeProject.modernMapView}
               onPick={handleModernPick}
               overlayCorners={activeOverlayCorners ?? demoOverlayCorners}
@@ -464,13 +438,15 @@ export default function App() {
               viewportAspectRatio={historicViewportAspectRatio}
             />
           </div>
-          {workspaceSidebar}
         </section>
       ) : (
         <section className="review-workbench" aria-label="Overlay review">
           <ModernMapPane
             controlPoints={controlPoints}
+            historicHeight={activeProject.historicMap.heightPx}
             historicImageUrl={activeProject.historicMap.rawImageUrl}
+            historicTransform={analysis.transform}
+            historicWidth={activeProject.historicMap.widthPx}
             initialView={activeProject.modernMapView}
             onPick={handleModernPick}
             overlayCorners={activeOverlayCorners ?? demoOverlayCorners}
@@ -500,7 +476,6 @@ export default function App() {
               </p>
             </section>
             <QaPanel analysis={analysis} />
-            {workspaceSidebar}
           </aside>
         </section>
       )}

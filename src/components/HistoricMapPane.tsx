@@ -7,7 +7,12 @@ import {
   type MouseEvent,
   type PointerEvent
 } from "react";
-import type { GroundControlPoint, HistoricMap, HistoricPixel } from "../domain/types";
+import type {
+  ControlPointRole,
+  GroundControlPoint,
+  HistoricMap,
+  HistoricPixel
+} from "../domain/types";
 
 const minimumHistoricZoom = 1;
 const maximumHistoricZoom = 4;
@@ -20,7 +25,9 @@ interface HistoricMapPaneProps {
   map: HistoricMap;
   controlPoints: GroundControlPoint[];
   interactionMode: HistoricMapInteractionMode;
+  nextPointRole: ControlPointRole;
   onInteractionModeChange: (mode: HistoricMapInteractionMode) => void;
+  onPointRoleChange: (role: ControlPointRole) => void;
   pendingPoint?: HistoricPixel;
   onPick: (point: HistoricPixel) => void;
 }
@@ -51,7 +58,9 @@ export function HistoricMapPane({
   map,
   controlPoints,
   interactionMode,
+  nextPointRole,
   onInteractionModeChange,
+  onPointRoleChange,
   pendingPoint,
   onPick
 }: HistoricMapPaneProps) {
@@ -348,6 +357,25 @@ export function HistoricMapPane({
             </button>
           </div>
         </div>
+        {interactionMode === "place" ? (
+          <div className="historic-point-role">
+            <label className="historic-toolbar-label" htmlFor="next-point-role">
+              Next point
+            </label>
+            <select
+              id="next-point-role"
+              onChange={(event) => onPointRoleChange(event.target.value as ControlPointRole)}
+              value={nextPointRole}
+            >
+              <option value="fit">Fit point — builds transform</option>
+              <option value="check">Independent check — validates transform</option>
+            </select>
+            <p className="historic-point-role-help">
+              Fit points build the transform; use at least three well-distributed, non-collinear
+              landmarks. Independent checks stay out of the fit and test its accuracy.
+            </p>
+          </div>
+        ) : null}
         <div className="historic-map-controls" role="group" aria-label="Historic map zoom controls">
           <span className="historic-zoom-label">Zoom</span>
           <button
@@ -443,21 +471,23 @@ export function HistoricMapPane({
           ) : null}
         </div>
       </div>
-      <div className="historic-map-key" aria-label="Control point roles">
-        <span>
-          <i aria-hidden="true" className="point-key fit" /> Fit point: builds transform
-        </span>
-        <span>
-          <i aria-hidden="true" className="point-key check" /> Independent check: validates it
-        </span>
-      </div>
-      <div className="pane-footer">
-        <span>
-          {map.widthPx.toLocaleString()} × {map.heightPx.toLocaleString()} px
-        </span>
-        <span>
-          {map.mapDate} · {map.sheet}
-        </span>
+      <div className="historic-map-footer">
+        <div className="historic-map-key" aria-label="Control point roles">
+          <span>
+            <i aria-hidden="true" className="point-key fit" /> Fit point: builds transform
+          </span>
+          <span>
+            <i aria-hidden="true" className="point-key check" /> Independent check: validates it
+          </span>
+        </div>
+        <div className="pane-footer">
+          <span>
+            {map.widthPx.toLocaleString()} × {map.heightPx.toLocaleString()} px
+          </span>
+          <span>
+            {map.mapDate} · {map.sheet}
+          </span>
+        </div>
       </div>
     </section>
   );
