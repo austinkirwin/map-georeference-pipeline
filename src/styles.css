@@ -173,6 +173,13 @@ h2 {
   min-width: 0;
 }
 
+.edit-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 20rem);
+  gap: 1rem;
+  align-items: start;
+}
+
 .review-action {
   display: flex;
   flex-wrap: wrap;
@@ -332,6 +339,10 @@ h2 {
   display: grid;
   gap: 0.6rem;
   margin: 0 1rem 0.75rem;
+}
+
+.clear-points-button {
+  justify-self: start;
 }
 
 .historic-map-mode-control {
@@ -742,7 +753,7 @@ input[type="range"] {
 
 .lower-panels {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) repeat(2, minmax(15rem, 0.72fr));
+  grid-template-columns: minmax(0, 1.35fr) minmax(15rem, 0.72fr);
   gap: 1rem;
   margin-top: 1rem;
   align-items: start;
@@ -969,16 +980,16 @@ td small {
 }
 
 @media (max-width: 1220px) {
+  .edit-workspace {
+    grid-template-columns: 1fr;
+  }
+
   .private-review-options {
     grid-template-columns: 1fr;
   }
 
   .lower-panels {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .control-points-panel {
-    grid-column: 1 / -1;
   }
 }
 

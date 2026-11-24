@@ -442,31 +442,35 @@ export default function App() {
 
       {mode === "edit" ? (
         <section className="workbench" aria-label="Side-by-side georeferencing editor">
-          <div className="map-pair">
-            <HistoricMapPane
-              controlPoints={controlPoints}
-              interactionMode={historicInteractionMode}
-              map={activeProject.historicMap}
-              nextPointRole={nextPointRole}
-              onInteractionModeChange={setHistoricMapInteractionMode}
-              onPick={handleHistoricPick}
-              onPointRoleChange={setNextPointRole}
-              pendingPoint={pendingHistoricPoint}
-            />
-            <ModernMapPane
-              controlPoints={controlPoints}
-              historicHeight={activeProject.historicMap.heightPx}
-              historicImageUrl={activeProject.historicMap.rawImageUrl}
-              historicTransform={analysis.transform}
-              historicWidth={activeProject.historicMap.widthPx}
-              initialView={activeProject.modernMapView}
-              onPick={handleModernPick}
-              overlayCorners={overlayCorners}
-              overlayOpacity={overlayOpacity}
-              overlayStyle={overlayStyle}
-              showOverlay={false}
-              viewportAspectRatio={historicViewportAspectRatio}
-            />
+          <div className="edit-workspace">
+            <div className="map-pair">
+              <HistoricMapPane
+                controlPoints={controlPoints}
+                interactionMode={historicInteractionMode}
+                map={activeProject.historicMap}
+                nextPointRole={nextPointRole}
+                onClearPoints={resetCurrentProject}
+                onInteractionModeChange={setHistoricMapInteractionMode}
+                onPick={handleHistoricPick}
+                onPointRoleChange={setNextPointRole}
+                pendingPoint={pendingHistoricPoint}
+              />
+              <ModernMapPane
+                controlPoints={controlPoints}
+                historicHeight={activeProject.historicMap.heightPx}
+                historicImageUrl={activeProject.historicMap.rawImageUrl}
+                historicTransform={analysis.transform}
+                historicWidth={activeProject.historicMap.widthPx}
+                initialView={activeProject.modernMapView}
+                onPick={handleModernPick}
+                overlayCorners={overlayCorners}
+                overlayOpacity={overlayOpacity}
+                overlayStyle={overlayStyle}
+                showOverlay={false}
+                viewportAspectRatio={historicViewportAspectRatio}
+              />
+            </div>
+            <QaPanel analysis={analysis} />
           </div>
           <div className="review-action">
             <p>
@@ -558,7 +562,6 @@ export default function App() {
           onToggle={toggleControlPoint}
           residualMetersByPointId={analysis.residualMetersByPointId}
         />
-        <QaPanel analysis={analysis} />
         <ResearchFinding
           evidence={activeProject.zoningEvidence}
           finding={activeProject.sampleFinding}
@@ -572,9 +575,6 @@ export default function App() {
           jurisdiction boundary, source citations, and human review.
         </p>
         <div>
-          <button className="text-button" onClick={resetCurrentProject} type="button">
-            Clear saved points
-          </button>
           {requestedMapId || localReviewActive ? (
             <button className="text-button" onClick={copyIssueRecord} type="button">
               Copy landmark record

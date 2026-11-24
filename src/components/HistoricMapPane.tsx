@@ -28,6 +28,7 @@ interface HistoricMapPaneProps {
   nextPointRole: ControlPointRole;
   onInteractionModeChange: (mode: HistoricMapInteractionMode) => void;
   onPointRoleChange: (role: ControlPointRole) => void;
+  onClearPoints: () => void;
   pendingPoint?: HistoricPixel;
   onPick: (point: HistoricPixel) => void;
 }
@@ -61,6 +62,7 @@ export function HistoricMapPane({
   nextPointRole,
   onInteractionModeChange,
   onPointRoleChange,
+  onClearPoints,
   pendingPoint,
   onPick
 }: HistoricMapPaneProps) {
@@ -412,6 +414,9 @@ export function HistoricMapPane({
             Reset
           </button>
         </div>
+        <button className="text-button clear-points-button" onClick={onClearPoints} type="button">
+          Clear saved points
+        </button>
       </div>
       <div
         aria-label={
