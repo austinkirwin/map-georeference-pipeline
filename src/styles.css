@@ -184,7 +184,6 @@ h2 {
   display: grid;
   gap: 1rem;
   min-width: 0;
-  margin-top: clamp(9rem, 13vw, 14rem);
 }
 
 .edit-sidebar .table-scroll {
@@ -998,10 +997,6 @@ td small {
 @media (max-width: 1220px) {
   .edit-workspace {
     grid-template-columns: 1fr;
-  }
-
-  .edit-sidebar {
-    margin-top: 0;
   }
 
   .private-review-options {
