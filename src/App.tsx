@@ -77,9 +77,7 @@ export default function App() {
         setLocalReviewActive(false);
         setMapLoadState("ready");
         setNotice(
-          "Loaded map " +
-            project.id +
-            ". Pair landmarks, then copy the issue-ready record into the linked GitHub Issue."
+          "Loaded map " + project.id + ". Pair landmarks and review the provisional overlay."
         );
       })
       .catch(() => {
@@ -277,60 +275,6 @@ export default function App() {
     }
   }
 
-  function exportManifest() {
-    const manifest = {
-      schemaVersion: activeProject.schemaVersion,
-      exportedAt: new Date().toISOString(),
-      project: {
-        ...activeProject,
-        controlPoints
-      },
-      provisionalAnalysis: analysis
-    };
-    const blob = new Blob([JSON.stringify(manifest, null, 2)], {
-      type: "application/json"
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = activeProject.id + "-georeference-manifest.json";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    setNotice(
-      "A local project manifest was exported. It is a draft research record, not a published warp."
-    );
-  }
-
-  async function copyIssueRecord() {
-    const record = formatIssueLandmarkRecord(
-      activeProject,
-      controlPoints,
-      analysis,
-      activeIssueNumber
-    );
-    try {
-      await navigator.clipboard.writeText(record);
-      setNotice(
-        "Landmark record copied. Paste it as a comment in the linked GitHub Issue for review."
-      );
-    } catch {
-      const blob = new Blob([record], { type: "text/markdown" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = activeProject.id + "-landmarks-for-issue.md";
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
-      setNotice(
-        "Clipboard access was unavailable, so an issue-ready landmark record was downloaded instead."
-      );
-    }
-  }
-
   const workspaceInformation = (
     <section className="workspace-information" aria-label="Review information">
       <details className="panel workflow-panel">
@@ -417,22 +361,20 @@ export default function App() {
               {activeIssueNumber ? " · Issue #" + activeIssueNumber : ""}
             </p>
             <p className="panel-note">
-              Pick landmarks here, then copy the record into the GitHub Issue. This GitHub Pages
-              workspace never stores a GitHub token or posts on your behalf. The overlay is a
-              provisional browser preview, not an approved georeferenced artifact.
+              Pick landmarks and review the provisional overlay here. This GitHub Pages workspace
+              never stores a GitHub token or posts on your behalf. The overlay is a browser preview,
+              not an approved georeferenced artifact.
             </p>
+            {localReviewActive ? (
+              <p className="panel-note">
+                Local review points exist only in this tab and will be lost on reload or close.
+                Copying and exporting points are currently unavailable.
+              </p>
+            ) : null}
           </div>
           <div className="issue-context-actions">
             <button className="text-button" onClick={() => setShowLauncher(true)} type="button">
               Choose another map
-            </button>
-            <button
-              className="primary-button"
-              disabled={mapLoadState !== "ready" || controlPoints.length === 0}
-              onClick={copyIssueRecord}
-              type="button"
-            >
-              Copy landmark record for Issue
             </button>
           </div>
         </section>
@@ -583,16 +525,6 @@ export default function App() {
           Historic zoning findings require the ordinance text, adopted zoning map, temporal
           jurisdiction boundary, source citations, and human review.
         </p>
-        <div>
-          {requestedMapId || localReviewActive ? (
-            <button className="text-button" onClick={copyIssueRecord} type="button">
-              Copy landmark record
-            </button>
-          ) : null}
-          <button className="primary-button" onClick={exportManifest} type="button">
-            Export draft manifest
-          </button>
-        </div>
       </footer>
     </main>
   );
@@ -623,63 +555,6 @@ function cloneControlPoints(controlPoints: GroundControlPoint[]): GroundControlP
     historicPixel: { ...controlPoint.historicPixel },
     modernLocation: { ...controlPoint.modernLocation }
   }));
-}
-
-function formatIssueLandmarkRecord(
-  project: GeoreferenceProject,
-  controlPoints: GroundControlPoint[],
-  analysis: ReturnType<typeof analyzeGeoreference>,
-  issueNumber?: number
-): string {
-  const marker =
-    "<!-- georef-control-points:map=" +
-    project.id +
-    (issueNumber ? ";issue=" + issueNumber : "") +
-    " -->";
-  const rows = controlPoints
-    .filter((point) => point.enabled)
-    .map((point) => {
-      const residual = analysis.residualMetersByPointId[point.id];
-      return [
-        escapeTableValue(point.label),
-        point.role,
-        point.historicPixel.x,
-        point.historicPixel.y,
-        point.modernLocation.longitude.toFixed(7),
-        point.modernLocation.latitude.toFixed(7),
-        residual === undefined ? "not calculated" : residual.toFixed(2) + " m",
-        point.confidence
-      ].join(" | ");
-    });
-
-  return [
-    marker,
-    "## Landmark record: " + project.title,
-    "",
-    "Map ID: " + project.id,
-    issueNumber ? "Issue: #" + issueNumber : "Issue: add this record to the relevant map Issue",
-    "Transform: " + (analysis.transform ? "affine" : "not fitted"),
-    "Fit RMSE: " + formatMetric(analysis.fitRmseMeters),
-    "Check RMSE: " + formatMetric(analysis.checkRmseMeters),
-    "Sheet coverage: " + Math.round(analysis.coverageRatio * 100) + "%",
-    "",
-    "| Landmark | Role | Pixel X | Pixel Y | Longitude | Latitude | Residual | Confidence |",
-    "| --- | --- | ---: | ---: | ---: | ---: | --- | --- |",
-    ...(rows.length > 0
-      ? rows.map((row) => "| " + row + " |")
-      : ["| No enabled points | — | — | — | — | — | — | — |"]),
-    "",
-    "Reviewer note: verify each landmark and its source before approving a transform.",
-    "This record is a research aid and not a legal zoning determination."
-  ].join("\n");
-}
-
-function escapeTableValue(value: string): string {
-  return value.replaceAll("|", "\\|").replaceAll("\n", " ");
-}
-
-function formatMetric(value: number | undefined): string {
-  return value === undefined ? "not calculated" : value.toFixed(2) + " m";
 }
 
 function updateReviewLocation(mapId?: string, issueNumber?: number) {

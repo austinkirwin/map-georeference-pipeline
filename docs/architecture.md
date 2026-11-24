@@ -10,9 +10,10 @@ review interface for repository review copies:
 3. GitHub Pages deploys the picker and repository review copies from the
    default branch.
 4. A reviewer opens the Pages link from the Issue, or a browser-local session
-   for authorized restricted material, then pastes a structured landmark record
-   into the Issue.
-5. A reviewed manifest becomes the input to future geoprocessing.
+   for authorized restricted material, and manually records review notes and
+   decisions in the Issue.
+5. A separately prepared, reviewed manifest becomes the input to future
+   geoprocessing.
 
 `maps/inbox` is the repository-facing review-copy contract and is copied into
 the Pages artifact. A map in that directory is therefore reachable from the
@@ -33,7 +34,10 @@ The browser picker remains intentionally static. It demonstrates the critical hu
 4. Fit an affine transform from **fit** GCPs only.
 5. Measure residuals for fit and independent **check** GCPs.
 6. Review a provisional overlay.
-7. Export a draft project manifest or copy an Issue-ready landmark record.
+
+The picker currently has no control for copying a landmark record or exporting
+a draft manifest. Reusable code is retained for possible future use; a complete
+reviewed record must be prepared separately before processing.
 
 The demo uses a fictional scan and fictional evidence. It is an interface and data-model starting point, not a map-processing service.
 
@@ -52,8 +56,7 @@ GitHub Pages static review interface
  ├── ModernMapPane         MapLibre map, reference layers, geographic GCPs
  ├── Review launcher       repository map or browser-only local-image entry
  ├── georeference.ts       deterministic affine fit and residual calculations
- ├── QA panels             coverage, RMSE, warnings, review state
- └── exported record       portable manifest or Issue-ready landmark table
+ └── QA panels             coverage, RMSE, warnings, review state
 
 Future service boundary
  ├── API                   validation, authorization, manifest persistence
@@ -67,7 +70,9 @@ For local development, the picker runs on port 5173. A reviewer can select an
 authorized image from a private Issue or another approved source without
 uploading or committing it; that browser-only option is an intake aid, not a
 substitute for source metadata or reviewer approval. GitHub Pages must never
-receive or host that restricted image.
+receive or host that restricted image. Repository-map control points are saved
+in the current browser's local storage; local-file points exist only in the
+current page session and are lost when the page reloads or the tab closes.
 
 ## Why side-by-side comes first
 

@@ -138,7 +138,7 @@ jobs:
                 "2. If the Pages site is still deploying, wait a few minutes and reload it. The picker opens `maps/inbox/" + mapId + "/` and Issue #" + issueNumberToken + ".",
                 "3. If the review image must stay outside the repository, open the picker and choose **Open local review copy** after downloading an authorized PNG, JPEG, or WebP. It is not uploaded or committed.",
                 "4. Pair durable historic and modern landmarks.",
-                "5. Copy the issue-ready landmark record from the picker and paste it in a comment below.",
+                "5. Select **Done — review overlay**, then document the review and any landmark details manually in this Issue.",
                 "",
                 "## Review checklist",
                 "- [ ] Verify source information and map date.",

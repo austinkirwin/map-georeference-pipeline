@@ -31,9 +31,11 @@ authoritative zoning determinations.
 6. Select **Done — review overlay** to generate a provisional browser overlay.
    Inspect the alignment, fit-point coverage, and independent check residuals;
    return to **Side-by-side edit** to correct or add points as needed.
-7. Copy the issue-ready landmark record and paste it into the Issue. Review
-   source information and document the human decision there.
-8. Save the reviewed record under `maps/manifests/` and use it as input to
+7. Review source information and manually document review notes and the human
+   decision in the Issue. The picker does not currently offer a landmark-record
+   copy or manifest export; a complete reviewed record must be prepared
+   separately before later processing.
+8. Save a separately prepared, reviewed record under `maps/manifests/` for
    later GDAL, COG, and spatial-database processing.
 
 ```text
@@ -45,7 +47,7 @@ GitHub Action creates a map Issue
         ->
 GitHub Pages landmark picker
         ->
-reviewer pastes landmark record into Issue
+reviewer records review notes in Issue
         ->
 reviewed manifest and reproducible processing
 ```
@@ -84,6 +86,12 @@ The **Done — review overlay** button uses the current fit to display a draft
 overlay in the browser. It does not approve landmarks, close the Issue, or
 create a reviewed processing artifact. Local review images remain in the
 browser session.
+
+Repository-map control points persist in the current browser's local storage.
+For a local review image, control points are kept only in the current page
+session and are lost when the page reloads or the tab closes. The picker offers neither
+landmark-record copying nor manifest export, so plan any separate documentation
+accordingly.
 
 The overlay defaults to a transparent light background so darker historic
 features can be compared with the modern map. This display can also hide pale
@@ -185,7 +193,8 @@ tokens, or other credentials. See [`.env.example`](.env.example).
    actual Pages base URL differs from the standard project-site URL.
 5. Optional: the manual Codex landmark-record reviewer needs an
    `OPENAI_API_KEY` Actions secret before it can run. It is disabled by default
-   and never runs on an Issue, push, or pull-request event. See
+   and never runs on an Issue, push, or pull-request event. It requires a
+   separately supplied compatible landmark record in the Issue. See
    [`docs/codex-issue-assist.md`](docs/codex-issue-assist.md).
 6. Optional: configure the protected `dropbox-intake` environment and its three
    Dropbox OAuth secrets to use the manual Dropbox-to-review-PR workflow. See
@@ -203,7 +212,7 @@ tokens, or other credentials. See [`.env.example`](.env.example).
 - Side-by-side historic and modern-map control-point selection
 - Separate fit and independent check points
 - Affine-fit residuals, RMSE, coverage warnings, and provisional overlay review
-- Issue-ready landmark-record export
+- Browser-local repository-map point storage (local-file sessions are temporary)
 
 ## Important limitations
 
@@ -211,6 +220,10 @@ Historical zoning research needs more than a map overlay. A supported finding
 should include the historical location or parcel, jurisdiction at the requested
 date, ordinance version, adopted map, source citations, documented spatial
 uncertainty, and human review.
+
+Copying landmark records and exporting draft manifests are not currently
+available in the picker. Reusable code for these actions is retained for future
+work; the present interface does not create a portable point record.
 
 The application is a research aid, not legal advice, a survey, or an
 authoritative zoning determination.

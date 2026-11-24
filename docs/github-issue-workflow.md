@@ -6,7 +6,7 @@
 - **GitHub Action** creates the canonical map Issue when a new map.json record reaches the default branch.
 - **Reviewer** uses the linked GitHub Pages picker for a repository review
   copy, or a local browser session for authorized restricted material, checks
-  source/provenance, and pastes the landmark record into the Issue.
+  source/provenance, and manually records review notes and decisions in the Issue.
 - **Processor** later turns a reviewed manifest into GDAL artifacts, COGs, and spatial records.
 
 ## Intake contract
@@ -73,9 +73,12 @@ source. The local file is not uploaded, committed, or sent to GitHub Pages by
 the picker. A PDF must be converted to a review image before this browser-only
 route can use it.
 
-The picker can save repository-map work in the browser and copy a Markdown
-landmark table for an Issue comment. Local-file sessions intentionally do not
-persist control points after the tab is closed.
+The picker saves repository-map control points in the current browser's local
+storage. Local-file sessions keep points only in the current page session;
+those points are lost when the page reloads or the tab closes. The picker does not currently offer
+landmark-record copying or manifest export; reusable code remains available for
+possible future use. A complete reviewed record must be prepared separately
+before processing.
 
 Once the reviewer has at least three usable fit pairs, **Done — review
 overlay** creates a provisional browser preview using the current affine fit.
@@ -105,7 +108,9 @@ The workflow runs only when a trusted collaborator manually dispatches it from
 the default branch and checks its explicit run control. It selects the latest
 comment whose picker marker matches both the map and Issue, then produces a
 structured draft. A separate, opt-in job may post that draft back to the Issue.
-The model job has no GitHub write permission.
+The model job has no GitHub write permission. Because the picker no longer
+copies a landmark record, this workflow requires a separately supplied
+compatible marker-bearing record in the Issue.
 
 This is a review aid, not an automated approval mechanism. It must not trigger
 from raw Issue text, close an Issue, apply labels, create a manifest, or assert
