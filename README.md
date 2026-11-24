@@ -85,6 +85,12 @@ overlay in the browser. It does not approve landmarks, close the Issue, or
 create a reviewed processing artifact. Local review images remain in the
 browser session.
 
+The overlay defaults to a transparent light background so darker historic
+features can be compared with the modern map. This display can also hide pale
+colors or details; switch **Historic map display** to **Original translucent
+scan** to examine the complete source image. Adjust **Historic layer opacity**
+from 0% (modern map only) to 100% to compare the layers.
+
 ## GitHub Pages deployment
 
 [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)

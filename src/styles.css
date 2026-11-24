@@ -637,6 +637,10 @@ input[type="range"] {
   accent-color: #0d6e68;
 }
 
+.overlay-panel .panel-note + .field-label {
+  margin-top: 1rem;
+}
+
 .panel-note {
   margin: 0.7rem 0 0;
   color: #687d79;

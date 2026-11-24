@@ -6,12 +6,14 @@ import { resolveReferenceBasemap } from "../lib/basemap";
 import type { AffineTransform } from "../lib/georeference";
 import { historicExtentBounds } from "../lib/historicExtent";
 import type { HistoricOverlayCorners } from "../lib/historicOverlay";
+import { fadeLightBackground, type HistoricOverlayStyle } from "../lib/overlayTransparency";
 
 interface ModernMapPaneProps {
   controlPoints: GroundControlPoint[];
   onPick: (point: MapCoordinate) => void;
   showOverlay: boolean;
   overlayOpacity: number;
+  overlayStyle: HistoricOverlayStyle;
   historicImageUrl: string;
   overlayCorners?: HistoricOverlayCorners;
   viewportAspectRatio: number;
@@ -31,6 +33,7 @@ export function ModernMapPane({
   onPick,
   showOverlay,
   overlayOpacity,
+  overlayStyle,
   historicImageUrl,
   overlayCorners,
   viewportAspectRatio,
@@ -45,9 +48,12 @@ export function ModernMapPane({
   const pointsRef = useRef(controlPoints);
   const showOverlayRef = useRef(showOverlay);
   const overlayOpacityRef = useRef(overlayOpacity);
+  const overlayStyleRef = useRef(overlayStyle);
+  const restyleOverlayRef = useRef<((style: HistoricOverlayStyle) => void) | undefined>(undefined);
   const [runtimeBasemapError, setRuntimeBasemapError] = useState<string>();
   const [overlayError, setOverlayError] = useState<string>();
   const [overlayResolutionNotice, setOverlayResolutionNotice] = useState<string>();
+  const [overlayStyleError, setOverlayStyleError] = useState<string>();
   const basemapMessage = runtimeBasemapError ?? referenceBasemap.configurationNotice;
   const historicBounds = historicExtentBounds(historicTransform, historicWidth, historicHeight);
   const overlayCornersKey = overlayCorners ? JSON.stringify(overlayCorners) : "";
@@ -68,6 +74,11 @@ export function ModernMapPane({
   }, [showOverlay, overlayOpacity]);
 
   useEffect(() => {
+    overlayStyleRef.current = overlayStyle;
+    restyleOverlayRef.current?.(overlayStyle);
+  }, [overlayStyle]);
+
+  useEffect(() => {
     if (!containerRef.current) {
       return undefined;
     }
@@ -75,6 +86,7 @@ export function ModernMapPane({
       ? (JSON.parse(overlayCornersKey) as HistoricOverlayCorners)
       : undefined;
     setOverlayResolutionNotice(undefined);
+    setOverlayStyleError(undefined);
     setOverlayError(
       showOverlay && !coordinates
         ? "The overlay is unavailable because the current fit is invalid. Return to point selection and check the enabled fit points."
@@ -126,6 +138,19 @@ export function ModernMapPane({
           map,
           historicImageUrl,
           coordinates,
+          () => overlayStyleRef.current,
+          () => ({ visible: showOverlayRef.current, opacity: overlayOpacityRef.current }),
+          (restyle) => {
+            if (!disposed) {
+              restyleOverlayRef.current = (style) => {
+                restyle(style);
+                updateOverlay(map, showOverlayRef.current, overlayOpacityRef.current);
+              };
+            }
+          },
+          (message) => {
+            if (!disposed) setOverlayStyleError(message);
+          },
           (reducedResolution) => {
             if (disposed) return;
             if (reducedResolution) {
@@ -165,6 +190,7 @@ export function ModernMapPane({
 
     return () => {
       disposed = true;
+      restyleOverlayRef.current = undefined;
       cancelOverlayLoad?.();
       map.off("error", handleMapError);
       map.remove();
@@ -230,6 +256,11 @@ export function ModernMapPane({
             {overlayError}
           </p>
         ) : null}
+        {overlayStyleError ? (
+          <p className="basemap-alert" role="alert">
+            {overlayStyleError}
+          </p>
+        ) : null}
         {overlayResolutionNotice ? <p className="panel-note">{overlayResolutionNotice}</p> : null}
       </div>
       <div className="modern-map-toolbar-spacer">
@@ -281,7 +312,7 @@ function updateOverlay(
   showOverlay: boolean,
   overlayOpacity: number
 ) {
-  if (!map || !map.isStyleLoaded() || !map.getLayer(overlayLayerId)) {
+  if (!map?.style || !map.getLayer(overlayLayerId)) {
     return;
   }
   map.setLayoutProperty(overlayLayerId, "visibility", showOverlay ? "visible" : "none");
@@ -292,6 +323,10 @@ function addHistoricOverlay(
   map: maplibregl.Map,
   historicImageUrl: string,
   overlayCorners: HistoricOverlayCorners,
+  currentStyle: () => HistoricOverlayStyle,
+  currentPaint: () => { visible: boolean; opacity: number },
+  onRestyleReady: (restyle: (style: HistoricOverlayStyle) => void) => void,
+  onStyleError: (message: string | undefined) => void,
   onReady: (reducedResolution: boolean) => void,
   onError: () => void
 ): () => void {
@@ -321,21 +356,58 @@ function addHistoricOverlay(
       return;
     }
     try {
-      context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      map.addSource(overlaySourceId, {
-        type: "canvas",
-        canvas,
-        coordinates: overlayCorners,
-        animate: false
-      });
-      map.addLayer(
-        {
-          id: overlayLayerId,
-          type: "raster",
-          source: overlaySourceId
-        },
-        sourceId
-      );
+      const attachOverlay = () => {
+        const paint = currentPaint();
+        map.addSource(overlaySourceId, {
+          type: "canvas",
+          canvas,
+          coordinates: overlayCorners,
+          animate: false
+        });
+        map.addLayer(
+          {
+            id: overlayLayerId,
+            type: "raster",
+            source: overlaySourceId,
+            layout: { visibility: paint.visible ? "visible" : "none" },
+            paint: { "raster-opacity": paint.opacity }
+          },
+          sourceId
+        );
+      };
+      const drawStyle = (style: HistoricOverlayStyle) => {
+        try {
+          context.clearRect(0, 0, canvas.width, canvas.height);
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          if (style === "ink") {
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            fadeLightBackground(imageData.data);
+            context.putImageData(imageData, 0, 0);
+          }
+          onStyleError(undefined);
+        } catch {
+          // Cross-origin security can block pixel reads and WebGL uploads.
+          onStyleError(
+            "The light-background view could not be created. Try Original scan or use a local or same-origin review copy; a cross-origin image may also prevent the original overlay from rendering."
+          );
+        }
+
+        const source = map.getSource(overlaySourceId) as maplibregl.CanvasSource | undefined;
+        if (source) {
+          try {
+            // A new source will upload the current canvas even if its previous
+            // tile was off screen. Keep the map and camera unchanged.
+            map.removeLayer(overlayLayerId);
+            map.removeSource(overlaySourceId);
+            attachOverlay();
+          } catch {
+            onError();
+          }
+        }
+      };
+      drawStyle(currentStyle());
+      attachOverlay();
+      onRestyleReady(drawStyle);
       onReady(scale < 1);
     } catch {
       onError();

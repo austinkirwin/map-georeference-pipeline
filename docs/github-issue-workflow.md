@@ -84,6 +84,11 @@ and return to landmark selection. The preview does not approve points, post a
 comment, close an Issue, or create a reviewed processing artifact. A local-file
 review copy remains in the browser session.
 
+The default overlay display makes light historic areas transparent to reveal
+the modern reference beneath. This can suppress pale colors and details. Use
+**Original translucent scan** to inspect the full image, and adjust the layer
+opacity to compare both maps.
+
 The Pages deployment reflects the repository review copy. It must not offer
 credentials, private Issue attachments, or Dropbox source files. Local review
 remains a separate browser-only route.

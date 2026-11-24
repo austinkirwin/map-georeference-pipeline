@@ -16,6 +16,7 @@ import type {
 } from "./domain/types";
 import { analyzeGeoreference } from "./lib/georeference";
 import { historicOverlayCorners } from "./lib/historicOverlay";
+import type { HistoricOverlayStyle } from "./lib/overlayTransparency";
 import {
   getIssueContext,
   localMapIdFromFileName,
@@ -46,7 +47,8 @@ export default function App() {
   const [nextPointRole, setNextPointRole] = useState<ControlPointRole>("fit");
   const [historicInteractionMode, setHistoricInteractionMode] =
     useState<HistoricMapInteractionMode>("place");
-  const [overlayOpacity, setOverlayOpacity] = useState(0.58);
+  const [overlayOpacity, setOverlayOpacity] = useState(0.9);
+  const [overlayStyle, setOverlayStyle] = useState<HistoricOverlayStyle>("ink");
   const [notice, setNotice] = useState(
     "Choose a durable landmark on the historical scan to begin a paired control point."
   );
@@ -461,6 +463,7 @@ export default function App() {
               onPick={handleModernPick}
               overlayCorners={overlayCorners}
               overlayOpacity={overlayOpacity}
+              overlayStyle={overlayStyle}
               showOverlay={false}
               viewportAspectRatio={historicViewportAspectRatio}
             />
@@ -488,6 +491,7 @@ export default function App() {
             onPick={handleModernPick}
             overlayCorners={overlayCorners}
             overlayOpacity={overlayOpacity}
+            overlayStyle={overlayStyle}
             showOverlay={true}
             viewportAspectRatio={historicViewportAspectRatio}
           />
@@ -495,13 +499,29 @@ export default function App() {
             <section className="panel overlay-panel">
               <p className="eyebrow">Provisional overlay</p>
               <h2>Visual validation only</h2>
+              <label className="field-label" htmlFor="overlay-style">
+                Historic map display
+              </label>
+              <select
+                id="overlay-style"
+                onChange={(event) => setOverlayStyle(event.target.value as HistoricOverlayStyle)}
+                value={overlayStyle}
+              >
+                <option value="ink">Transparent light background</option>
+                <option value="original">Original translucent scan</option>
+              </select>
+              <p className="panel-note">
+                {overlayStyle === "ink"
+                  ? "Light areas, including pale colors, become transparent. Switch to the original scan to inspect all source details."
+                  : "The complete historic image is shown with adjustable transparency."}
+              </p>
               <label className="field-label" htmlFor="overlay-opacity">
-                Historic scan opacity: {Math.round(overlayOpacity * 100)}%
+                Historic layer opacity: {Math.round(overlayOpacity * 100)}%
               </label>
               <input
                 id="overlay-opacity"
                 max="1"
-                min="0.1"
+                min="0"
                 onChange={(event) => setOverlayOpacity(Number(event.target.value))}
                 step="0.05"
                 type="range"
